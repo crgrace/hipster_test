@@ -8,6 +8,7 @@ Created on 09/02/2015python 18:26:37 2015
 """
 Low-level bit-banged HIPSTER serial interface for Raspberry Pi.
 Intended to run on the Raspberry Pi
+Script uses Broadcom numbering
 """
 
 import RPi.GPIO as GPIO
@@ -86,7 +87,6 @@ def spiMaster(spiWRB,spiAddr,spiData):
     # write SPI data
     for i in range(0,wordLength):
         putBit( (spiData >> (wordLength - 1 - i) & 1 ))
-
 
     # complete readout of SPI register
     for i in range(0,3):

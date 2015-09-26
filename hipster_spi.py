@@ -252,7 +252,8 @@ def readRegister(register,data=5555,deviceID=0):
     dataHIPSTER = serverOp(message) 
     print "readRegisterTCPIP: ",dataHIPSTER
     return int(dataHIPSTER)
- 
+
+#def serverOp(message,serverName="131.243.115.29",port=50000,verbose=False): 
 #def serverOp(message,serverName="131.243.115.189",port=50000,verbose=False):
 def serverOp(message,serverName="localhost",port=50000,verbose=False):
     """The serverOp command length is five bytes.  First byte is device ID and  
@@ -575,15 +576,12 @@ def readbackBias(whichSignal):
 
     oldCommand = readRegister(20)  # bias_readback is bits 1:0 of reg 20  
     if (whichSignal == "MASTER"):
-        command = 0
         newCommand = clearBit(oldCommand,0)
         newCommand = clearBit(newCommand,1) 
     elif (whichSignal == "ADC" or "CML_50U"):       
-        command = 1
         newCommand = setBit(oldCommand,0)
         newCommand = clearBit(newCommand,1) 
     elif (whichSignal == "REFBUFFER" or "PLL_CP"):
-        command = 3
         newCommand = setBit(oldCommand,0)
         newCommand = setBit(newCommand,1) 
     writeRegister(20,newCommand)

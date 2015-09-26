@@ -9,6 +9,10 @@ Created on Wed Aug 5 18:26:37 2015
 functions used to configure the Si5338 clock generator.
 """
 from hipster_spi import serverOp
+from hipster_spi_ops import clearBit
+from hipster_spi_ops import setBit
+
+import time
 
 def configureSi5338(inputFile="reg5338.txt"):
     """ configures the Si5338.  To do so it must follow the procedure on
@@ -28,7 +32,7 @@ def configureSi5338(inputFile="reg5338.txt"):
     validateInputClock()
     configurePLLForLocking()
     initiateLockingOfPLL()
-    sleep(0.025)
+    time.sleep(0.025)
     restartLOL()
     confirmPLLLock(maxWaitTime,timeStep)
     setUpFCALRegister()
@@ -46,7 +50,7 @@ def setUpFCALRegister():
     # mask out bits 
     newBits = oldRegister & 0xFC
     # write new reg 47 (setting 47[7:2] to 000101b
-    writeRegister(47,(5 << 2) & newBits)
+    writeRegister5338(47,(5 << 2) & newBits)
       
     # copy reg236 to reg46
     writeRegister5338(46,readRegister5338(236))
@@ -58,7 +62,7 @@ def setUpFCALRegister():
     oldRegister = readRegister5338(47)
     writeRegister5338(47,setBit(oldRegister,7))
 
-def enableOutput():
+def enableOutputs():
     # enable Outputs
     oldRegister = readRegister5338(230)
     writeRegister5338(230,setBit(oldRegister,4))
@@ -75,8 +79,7 @@ def pauseLOL():
 
 def initiateLockingofPLL():
     # initiate locking of PLL   
-    oldRegister = readRegister(246)
-    newRegister = setBit(oldRegister,1)
+    oldRegister = readRegister5338(246)
     writeRegister5338(246,setBit(oldRegister,1))
 
 def validateInputClock(maxWaitTime=1,timeStep=0.025):
@@ -85,13 +88,13 @@ def validateInputClock(maxWaitTime=1,timeStep=0.025):
     timeWaiting = 0 
     while (inputClockValid == False):
         inputClockValid = isInputClockValid()
-        sleep(timeStep)
+        time.sleep(timeStep)
         timeWaiting += timeStep
         if (timeWaiting > maxWaitTime):
             print "configure5338: input clock not valid"
             exit()
 
-def isInputCLockValid(verbose=False):
+def isInputClockValid(verbose=False):
     # check input clock alarms in reg218
     # both loss of feedback clock input (reg218[3]) and 
     # loss of signal clock input (reg218[2]) should be low.
@@ -119,14 +122,12 @@ def configurePLLForLocking():
     
 def initiateLockingOfPLL():
     # initiate locking of PLL   
-    oldRegister = readRegister(246)
-    newRegister = setBit(oldRegister,1)
+    oldRegister = readRegister5338(246)
     writeRegister5338(246,setBit(oldRegister,1))
 
 def restartLOL():
     # restart LOL
     oldRegister = readRegister5338(241)
-    newRegister = clearBit(oldRegister,7)
     writeRegister5338(49,clearBit(oldRegister,7))
     writeRegister5338(241,0x65)
 
@@ -138,7 +139,7 @@ def confirmPLLLock(maxWaitTime=1,timeStep=0.025):
         # check PLL status register 
         # PLL is 
         pllLock = isPLLLocked()
-        sleep(timeStep)
+        time.sleep(timeStep)
         timeWaiting += timeStep
         if (timeWaiting > maxWaitTime):
             print "configure5338: 5338 PLL did not lock"
@@ -234,8 +235,9 @@ def readConfigMapFromFile(inputFile,verbose=False):
     f.close()
     return configMap
 
-def writeConfigMapto5338(configMap):
+
+def writeConfigMapTo5338(configMap):
     """ dumps register map to Si5338
     """
     for command in len(configMap):
-        registerWrite5338(command,configMap[command])
+        writeRegister5338(command,configMap[command])
