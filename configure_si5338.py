@@ -9,12 +9,11 @@ Created on Wed Aug 5 18:26:37 2015
 functions used to configure the Si5338 clock generator.
 """
 from hipster_spi import serverOp
-from hipster_spi_ops import clearBit
-from hipster_spi_ops import setBit
+from hipster_spi import setBit
+from hipster_spi import clearBit
+from time import sleep
 
-import time
-
-def configureSi5338(inputFile="reg5338.txt"):
+def configureSi5338(inputFile="reg5338.txt",verbose=False):
     """ configures the Si5338.  To do so it must follow the procedure on
     page 23 of the Si5338 manual (rev 1.5).  Basically it is a procedure to
     make sure the chip is off, then load the register map, then restart the
@@ -32,55 +31,29 @@ def configureSi5338(inputFile="reg5338.txt"):
     validateInputClock()
     configurePLLForLocking()
     initiateLockingOfPLL()
-    time.sleep(0.025)
+    sleep(0.025)
     restartLOL()
     confirmPLLLock(maxWaitTime,timeStep)
-    setUpFCALRegister()
+    copyFCALRegisters()
     enableOutputs()
 
-def setUpFCALRegister(): 
-    # copy FCAL values to active registers
-    # 237[1:0] to 47[1:0]
-    # 236[7:0] to 46[7:0]
-    # 235[7:0] to 45[7:0]
-    # 47[7:2] = 000101b
-
-    # start with 237
-    oldRegister = readRegister5338(237)
-    # mask out bits 
-    newBits = oldRegister & 0xFC
-    # write new reg 47 (setting 47[7:2] to 000101b
-    writeRegister5338(47,(5 << 2) & newBits)
-      
-    # copy reg236 to reg46
-    writeRegister5338(46,readRegister5338(236))
-   
-    # copy reg235 to reg45
-    writeRegister5338(45,readRegister5338(235))
- 
-    # set PLL to FCAL values
-    oldRegister = readRegister5338(47)
-    writeRegister5338(47,setBit(oldRegister,7))
-
-def enableOutputs():
-    # enable Outputs
-    oldRegister = readRegister5338(230)
-    writeRegister5338(230,setBit(oldRegister,4))
-    
 def disableOutputs():
     # disable outputs
-    oldRegister = readRegister5338(230)
-    writeRegister5338(230,setBit(oldRegister,4))
+    writeRegister5338(230,setBit(readRegister5338(230),4))
 
 def pauseLOL():
     # pause LOL
-    oldRegister = readRegister5338(241)
-    writeRegister5338(241,setBit(oldRegister,7))
+    writeRegister5338(241,setBit(readRegister5338(241),7))
 
 def initiateLockingofPLL():
     # initiate locking of PLL   
-    oldRegister = readRegister5338(246)
-    writeRegister5338(246,setBit(oldRegister,1))
+    writeRegister5338(246,setBit(readRegister(246),1))
+
+
+def configurePLLForLocking():
+    """ configures the Si5338 PLL
+    """
+    writeRegister5338(49,clearBit(readRegister5338(49),7))
 
 def validateInputClock(maxWaitTime=1,timeStep=0.025):
     # validate input clock status
@@ -88,7 +61,7 @@ def validateInputClock(maxWaitTime=1,timeStep=0.025):
     timeWaiting = 0 
     while (inputClockValid == False):
         inputClockValid = isInputClockValid()
-        time.sleep(timeStep)
+        sleep(timeStep)
         timeWaiting += timeStep
         if (timeWaiting > maxWaitTime):
             print "configure5338: input clock not valid"
@@ -102,7 +75,8 @@ def isInputClockValid(verbose=False):
     statusRegister = readRegister5338(218)
     LOS_FDBK = (statusRegister >> 3) & 1
     LOS_CLKIN =  (statusRegister >> 2) & 1
-    if (LOS_FDBK or LOS_CLKIN):
+    #if (LOS_FDBK or LOS_CLKIN):
+    if (LOS_CLKIN):
         if (verbose):
             if (LOS_FDBK):
                 print "Loss of Signal Feedback Input detected."
@@ -112,23 +86,11 @@ def isInputClockValid(verbose=False):
     else:
         return True
 
-
-def configurePLLForLocking():
-    """ configures the Si5338 PLL
-    """
-    oldRegister = readRegister5338(49)
-    writeRegister5338(49,clearBit(oldRegister,7)
-)
-    
-def initiateLockingOfPLL():
-    # initiate locking of PLL   
-    oldRegister = readRegister5338(246)
-    writeRegister5338(246,setBit(oldRegister,1))
-
 def restartLOL():
-    # restart LOL
+    # restart Loss-of-lock detector (LOS)
     oldRegister = readRegister5338(241)
-    writeRegister5338(49,clearBit(oldRegister,7))
+    newRegister = clearBit(oldRegister,7)
+    writeRegister5338(241,clearBit(readRegister5338(241),7))
     writeRegister5338(241,0x65)
 
 def confirmPLLLock(maxWaitTime=1,timeStep=0.025):
@@ -139,7 +101,7 @@ def confirmPLLLock(maxWaitTime=1,timeStep=0.025):
         # check PLL status register 
         # PLL is 
         pllLock = isPLLLocked()
-        time.sleep(timeStep)
+        sleep(timeStep)
         timeWaiting += timeStep
         if (timeWaiting > maxWaitTime):
             print "configure5338: 5338 PLL did not lock"
@@ -164,6 +126,32 @@ def isPLLLocked(verbose=False):
     else:
         return True
 
+def copyFCALRegisters(): 
+    # copy FCAL values to active registers
+    # 237[1:0] to 47[1:0]
+    # 236[7:0] to 46[7:0]
+    # 235[7:0] to 45[7:0]
+    # 47[7:2] = 000101b
+
+    # start with 237
+    # mask out bits 
+    newBits = readRegister5338(237) & 0x03
+    # write new reg 47 (setting 47[7:2] to 000101b
+    writeRegister5338(47,(5 << 2) | newBits)
+      
+    # copy reg236 to reg46
+    writeRegister5338(46,readRegister5338(236))
+   
+    # copy reg235 to reg45
+    writeRegister5338(45,readRegister5338(235))
+ 
+    # set PLL to FCAL values
+    writeRegister5338(49,setBit(readRegister5338(47),7))
+
+def enableOutputs():
+    # enable Outputs
+    writeRegister5338(230,clearBit(readRegister5338(230),4))
+
 def registerOp5338(wrb,register,data):
     """ register operation for Si5338
     requires that the serverOp() function in hipster.py is available.
@@ -186,17 +174,18 @@ def registerOp5338(wrb,register,data):
         register = register | 0x8000
     message = str((deviceID << 32) | (register << 16) | data)
     print "registerOp5338:"
-    print "deviceID= ",deviceID
-    print "register = ",register
+    print "wrb = ",wrb
+    print "deviceID = ",deviceID
+    print "register = ",register & 0x7FFF
     print "data = ",data
 
-    serverOp(message)
+    return serverOp(message)
 
 def readRegister5338(register,data=5555):
     """ register read from Si5338
     """
     wrb = 0
-    registerOp5338(wrb,register,data)
+    return registerOp5338(wrb,register,data)
  
 def writeRegister5338(register,data):
     """ register write from Si5338 using I2C
@@ -214,30 +203,28 @@ def readConfigMapFromFile(inputFile,verbose=False):
     1,00h
     2,31h
     """
-
     try:
         f = open(inputFile)
     except IOError:
         print "Input file %s does not exist" %inputFile
+	return
 
-    configMap = 400*[0]
+    configMap = 355*[0]
     for line in iter(f):
-        if not (line.startswith("#") or line.startswith("")):
+	print "config file line # = ",line
+        if not (line.startswith("#")):
             register,word = line.split(',') 
             print type(register)
             print type(word)
             print register,word,word[:-1]
         # convert hex word to decimal, drop the trailing 'h', and write to map
             regValue = "0x"+word.split('h')[0]
-            
             configMap[int(register)]  = int(regValue,16)
-
     f.close()
     return configMap
-
 
 def writeConfigMapTo5338(configMap):
     """ dumps register map to Si5338
     """
-    for command in len(configMap):
+    for command in range(0,len(configMap)):
         writeRegister5338(command,configMap[command])

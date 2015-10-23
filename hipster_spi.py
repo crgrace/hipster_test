@@ -252,16 +252,16 @@ def readRegister(register,data=5555,deviceID=0):
     dataHIPSTER = serverOp(message) 
     print "readRegisterTCPIP: ",dataHIPSTER
     return int(dataHIPSTER)
-
-#def serverOp(message,serverName="131.243.115.29",port=50000,verbose=False): 
-#def serverOp(message,serverName="131.243.115.189",port=50000,verbose=False):
-def serverOp(message,serverName="localhost",port=50000,verbose=False):
+ 
+def serverOp(message,serverName="131.243.115.189",port=50000,verbose=True):
+#def serverOp(message,serverName="localhost",port=50000,verbose=False):
     """The serverOp command length is five bytes.  First byte is device ID and  
     indicates if it is a read or write and what device is requested.
     Bytes 2 and 3 are the 16-bit register address
     Bytes 4 and 5 are the 16-bit data word
     """
-    verbose = False
+    print "serverOp:"
+    verbose = True 
     if (verbose): print "message sent = ",message
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -288,7 +288,7 @@ def serverOp(message,serverName="localhost",port=50000,verbose=False):
     finally:
         sock.close()
     
-    data = int(dataReceived) & 0xFFFF 
+    data = int(dataReceived) & 0xFF 
     return data
 
 def calibrateADC():
@@ -576,12 +576,15 @@ def readbackBias(whichSignal):
 
     oldCommand = readRegister(20)  # bias_readback is bits 1:0 of reg 20  
     if (whichSignal == "MASTER"):
+        command = 0
         newCommand = clearBit(oldCommand,0)
         newCommand = clearBit(newCommand,1) 
     elif (whichSignal == "ADC" or "CML_50U"):       
+        command = 1
         newCommand = setBit(oldCommand,0)
         newCommand = clearBit(newCommand,1) 
     elif (whichSignal == "REFBUFFER" or "PLL_CP"):
+        command = 3
         newCommand = setBit(oldCommand,0)
         newCommand = setBit(newCommand,1) 
     writeRegister(20,newCommand)
@@ -613,7 +616,6 @@ def softReset():
     Reg 27<7:6> = 01 to assert
     Reg 27<7:6> = 10 to deassert
     """
-    
     oldCommand = readRegister(27) # jesd reset is bits 7:6 of reg 27
     newCommand = setBit(oldCommand,6)  # assert reset
     writeRegister(27,newCommand)
@@ -621,10 +623,12 @@ def softReset():
     writeRegister(27,newCommand) # deassert reset
     writeRegister(27,oldCommand) # restore original setting
 
-def enableDACs():
+def enableDACs(verbose=False):
     """ the DAC8568 needs the internal reference started after reset
         The internal reference is powered on with 0x08000001
         The function enables internal references on both DACs
+	This function also puts DACs in software LDAC mode so the outputs
+	will be updated as soon as new data is received
     """
     
     # the DAC uses 32-bit commands.  To keep the communications to 16-bits
@@ -632,13 +636,22 @@ def enableDACs():
     
     commandBits = 8
     DACcommand = (commandBits << 24) | 1 #bit F0 = 1 
-    print "DACcommand = ",DACcommand
     DACcommand_MSB = (DACcommand >> 16) & 0xFFFF
     DACcommand_LSB = DACcommand & 0xFFFF
-    print "DACcommand_MSB (register) = ",DACcommand_MSB
-    print "DACcommand_LSB (data) = ",DACcommand_LSB
     writeRegister(DACcommand_MSB,DACcommand_LSB,1)
     writeRegister(DACcommand_MSB,DACcommand_LSB,2)
+    # now put DACs in software LDAC mode
+    commandBits = 0x1800
+    DACcommand = (commandBits << 16) | 0xFF
+    DACcommand_MSB = (DACcommand >> 16) & 0xFFFF
+    DACcommand_LSB = DACcommand & 0xFFFF
+    writeRegister(DACcommand_MSB,DACcommand_LSB,1)
+    writeRegister(DACcommand_MSB,DACcommand_LSB,2)
+    if (verbose):
+        print "DACcommand = ",DACcommand
+        print "DACcommand_MSB (register) = ",DACcommand_MSB
+        print "DACcommand_LSB (data) = ",DACcommand_LSB
+
 
 def selectDAC(whichDAC):
     """ lookup table to determine which physical DAC and which channel
@@ -665,32 +678,32 @@ def selectDAC(whichDAC):
     """
 
     if (whichDAC == "VREF_N"):
-        (DAC, channel) = 1, 1                
+        (DAC, channel) = 1, 0                
     elif (whichDAC == "OFFSET_BOT"):
-        (DAC, channel) = 1, 2
-    elif (whichDAC == "VREF_P"):
-        (DAC, channel) = 1, 3
-    elif (whichDAC == "OFFSET_TOP"):
-        (DAC, channel) = 1, 4
-    elif (whichDAC == "VTH_N"):
-        (DAC, channel) = 1, 5
-    elif (whichDAC == "ADC_1"):
-        (DAC, channel) = 1, 6
-    elif (whichDAC == "VTH_P"):
-        (DAC, channel) = 1, 7
-    elif (whichDAC == "ADC_2"):
-        (DAC, channel) = 1, 8
-    elif (whichDAC == "VCM"):
         (DAC, channel) = 1, 1
+    elif (whichDAC == "VREF_P"):
+        (DAC, channel) = 1, 2
+    elif (whichDAC == "OFFSET_TOP"):
+        (DAC, channel) = 1, 3
+    elif (whichDAC == "VTH_N"):
+        (DAC, channel) = 1, 4
+    elif (whichDAC == "ADC_1"):
+        (DAC, channel) = 1, 5
+    elif (whichDAC == "VTH_P"):
+        (DAC, channel) = 1, 6
+    elif (whichDAC == "ADC_2"):
+        (DAC, channel) = 1, 7
+    elif (whichDAC == "VCM"):
+        (DAC, channel) = 1, 0
     elif (whichDAC == "BGR_AFE"):
-        (DAC, channel) = 2, 2
+        (DAC, channel) = 2, 1
     elif (whichDAC == "BGR_TX"):
-        (DAC, channel) = 2, 4
+        (DAC, channel) = 2, 2
     elif (whichDAC == "VCTRL"):
-        (DAC, channel) = 2, 4
+        (DAC, channel) = 2, 3
     else:
-        print "setDAC: Error.  Invalid DAC ID."
-        print "usage: available DACs are: \"VREF_P\" \"VREF_N\" \"VTH_P\" \"VTH_N\" \"VCM\" \"OFFSET_TOP\" \"OFFSET_BOTTOM\" \"BGR_AFE\" \"BGR_TX\" \"VCTRL\" \"ADC_1\" \"ADC_2\" "
+        print "setDAC: Error.  ",DAC," is invalid DAC ID."
+        print "usage: available DACs are: \"VREF_P\" \"VREF_N\" \"VTH_P\" \"VTH_N\" \"VCM\" \"OFFSET_TOP\" \"OFFSET_BOT\" \"BGR_AFE\" \"BGR_TX\" \"VCTRL\" \"ADC_1\" \"ADC_2\" "
     return DAC, channel
 
 
@@ -713,8 +726,8 @@ def setDAC(whichDAC,desiredVoltage):
         19:4  : 16-bit data word
         3:0   : function bits (X)
     """
-
-    if (0 < desiredVoltage < 3):
+    print "desiredVoltage = ",desiredVoltage
+    if not(0 < desiredVoltage < 3):
         print "setDAC: error.  Voltage out of range (0 - 3 V)."   
 
     DAC, channel = selectDAC(whichDAC)
@@ -731,8 +744,11 @@ def setDAC(whichDAC,desiredVoltage):
     # the DAC uses 32-bit commands.  To keep the communications to 16-bits
     # we send the top 16 bits in one write and the bottom 16 bits in a second 
     DACcommand = (commandBits << 24) | (channel << 20) | (data << 4)
-    DACcommand_MSB = (DACcommand >> 16) & 0xFF
-    DACcommand_LSB = DACcommand & 0xFF
+    print "data = ",data	
+    print "channel = ",channel
+    print "DACcommand = ",DACcommand
+    DACcommand_MSB = (DACcommand >> 16) & 0xFFFF
+    DACcommand_LSB = DACcommand & 0xFFFF
     writeRegister(DACcommand_MSB,DACcommand_LSB,DAC)
 
 def setDACRaw(whichDAC,data):
@@ -747,8 +763,8 @@ def setDACRaw(whichDAC,data):
     # the DAC uses 32-bit commands.  To keep the communications to 16-bits
     # we send the top 16 bits in one write and the bottom 16 bits in a second 
     DACcommand = (commandBits << 24) | (channel << 20) | (data << 4)
-    DACcommand_MSB = (DACcommand >> 16) & 0xFF
-    DACcommand_LSB = DACcommand & 0xFF
+    DACcommand_MSB = (DACcommand >> 16) & 0xFFFF
+    DACcommand_LSB = DACcommand & 0xFFFF
     writeRegister(DACcommand_MSB,DACcommand_LSB,DAC)
     
 
@@ -762,36 +778,31 @@ def setDACsToDefaults():
     VTH_N = 1.5625
     VREF_N = 1.0
     OFFSET_TOP = 1.0
-    OFFSET_BOTTOM = 0.5
+    OFFSET_BOT = 0.5
     """
-    setDAC("VBG",1.23)
+    setDAC("BGR_AFE",1.23)
+    setDAC("BGR_TX",1.23)
     setDAC("VREF_P",2.5)
     setDAC("VTH_P",1.9375)
     setDAC("VCM",1.75)
     setDAC("VTH_N",1.5625)
     setDAC("VREF_N",1.0)
     setDAC("OFFSET_TOP",1.0)
-    setDAC("OFFSET_BOTTOM",0.5)
+    setDAC("OFFSET_BOT",0.5)
 
 def configureSSO(whichADC,dataSelect=1):
     """ configures the SSO
         whichADC selects which ADC to read out (0 - 23)
         dataSelect = 0 --> raw decisions, dataSelect = 1 --> ADC data
     """
-    oldCommand = readRegister(3)
-    newCommand = 0x8000 | dataSelect << 6 | whichADC 
-    writeRegister(22,newCommand)
+    Command = 0x8000 | dataSelect << 6 | whichADC 
+    writeRegister(22,Command)
  
     
 def disableSSO():
     """ disables the SSO
     """
-        
-    oldCommand = readRegister(5)
-    newCommand = clearBit(oldCommand,7)
-    writeRegister(22,newCommand)
-
-
+    writeRegister(22,clearBit(readRegister(5)))
 
 def make_bin_from_int(a):
     '''returns a 16-bit string calculated from integer argument'''
@@ -951,16 +962,4 @@ def writeSpiMap(inputFile,verbose=False):
     if (verbose):
         print "configMap =",configMap
 
-# some test stuff
-defaultMap = list(REG_DEFAULTS)
-#print "configMap = ", configMap
 
-writeSpiMap("testfile.txt")
-#print len(configMap)
-#dumpConfigMap() 
-#dumpSPIMap()
-
-spiMapMod = spiMap[0:52]
-print "Does spiMap == configMap?", (spiMapMod == configMap)
-print "Dpes spiMap == regDefaults?", (spiMapMod == defaultMap)
-#print configMap
