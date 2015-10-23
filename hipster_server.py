@@ -26,10 +26,10 @@ Bytes 4 and 5 are the 16-bit data word
 """
 
 import sys, socket
-#import hipster_spi_ops
-#import time
-#import spidev   # for accessing Raspberry Pi SPI kernal module
-#import smbus   # for accessing Raspberry Pi SMBUS (I2C) kernal module
+import hipster_spi_ops
+import time
+import spidev   # for accessing Raspberry Pi SPI kernal module
+import smbus   # for accessing Raspberry Pi SMBUS (I2C) kernal module
 
 
 #### globals used for test
@@ -64,8 +64,8 @@ clrf = 384*[0]  # initialize with all zeros
 #    1 bit for the weight
 ####
 
-def Server(serverName="localhost",port=50000):
-#def Server(serverName="131.243.115.189",port=50000):
+#def Server(serverName="localhost",port=50000):
+def Server(serverName="131.243.115.189",port=50000):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Bind the socket to the address given to the function
     serverAddress = (serverName,port)  
@@ -148,14 +148,22 @@ def serverOp(dataString,verbose=False):
     # execute desired action
 
     if (deviceID == 0):    # HIPSTER
-        dataHIPSTER = regOpHIPSTER(wrb,register,data)
+        dataHIPSTER = str(regOpHIPSTER(wrb,register,data))
     elif (deviceID == 1):  # DAC1
         # DAC uses 32 bit commands.  Top 16 bits in register, LSBs in data
         regOpDAC(0,(register << 16 | data))   # 0 --> DAC1, 1 --> DAC2
+        #regOpDAC(0,data)   # 0 --> DAC1, 1 --> DAC2
     elif (deviceID == 2):  # DAC2
         regOpDAC(1,(register << 16 | data))
+        #regOpDAC(1, data)
     elif (deviceID == 3):
-        regOp5338(wrb,register,data)
+        print "si5338:"
+        response = regOp5338(wrb,register,data) 
+        print "returned data = ",response
+        dataStringInt = int(dataString) >> 16
+        dataStringInt = dataStringInt << 16
+        dataSi5338 = str(dataStringInt | response)
+        print "dataSi5338 string = ",dataSi5338
     else:
         print "serverOP error: device ID out of range."
         print "deviceID :  device"
@@ -174,6 +182,10 @@ def serverOp(dataString,verbose=False):
         if (verbose):
             print "serverOp: returning dataHIPSTER: ",dataHIPSTER
         return dataHIPSTER     
+    elif ((wrb == 0) and deviceID == 3):
+        print "serverOp: returning data from Si5338 clock generator"
+        print "data returned = ",dataSi5338 
+        return dataSi5338
     else:
         print "serverOp: read request on non-HIPSTER device"
 
@@ -222,26 +234,29 @@ def regOpDAC(dacID,data,verbose=True):
     # strip off wrb bit from data and set to 0 (DAC8568 prefix bit)
     data = data & 0x7FFFFFFF
     if (dacID == 0): # send to DAC1
-        pass
-#        spi = spidev.SpiDev()    # create spi object
-#        spi.open(0,0)  # open spi port 0, device (CS) 0
+#        pass
+        spi = spidev.SpiDev()    # create spi object
+        spi.open(0,0)  # open spi port 0, device (CS) 0
         # call to SPI driver goes here
     elif (dacID == 1): # send to DAC2
-        pass
-#        spi = spidev.SpiDev()    # create spi object
-#        spi.open(0,1)  # open spi port 0, device (CS) 1
+#        pass
+        spi = spidev.SpiDev()    # create spi object
+        spi.open(0,1)  # open spi port 0, device (CS) 1
     
     # now split 32-bit word into a list of four bytes
+
+    spi.mode = 0b01
     bytesToSend = 4*[0]
-    bytesToSend[0] = (data >> 24) & 0xFF
-    bytesToSend[1] = (data >> 16) & 0xFF
-    bytesToSend[2] = (data >> 8) & 0xFF
-    bytesToSend[3] = data & 0xFF
-    #print "bytesToSend = ",bytesToSend
+    bytesToSend[0] = int((data >> 24) & 0xFF)
+    bytesToSend[1] = int((data >> 16) & 0xFF)
+    bytesToSend[2] = int((data >> 8) & 0xFF)
+    bytesToSend[3] = int(data & 0xFF)
+    print "bytesToSend = ",bytesToSend
     # execute spi transaction (spi.xfer2 keeps 
     # CS asserted (low) between bytes)    
-#        response = spi.xfer2(bytesToSend)
-    response = 0
+    response = spi.xfer2(bytesToSend)
+#    response = spi.xfer2(8)
+#    response = 0
     if (verbose):
         print "regOpDAC:"
         print "dacID: ",dacID
@@ -252,32 +267,63 @@ def regOpDAC(dacID,data,verbose=True):
 def regOp5338(wrb,register,data,verbose=True):
     """ read or writes to a Si5338 register via I2C
         Si5338 7-bit slave address is 1110000
-    """ 
+    """
+    pageBit = False # si5338 uses pagebit to access additional regs 
+
+    # if register is > 255 pageBit (bit 0 of register 255) must be 
+    # set and then the actual register written to is register + 255
+
+    # this is not described in the datasheet (!)  You can only learn of this
+    # in by looking at reg 255 of the register map.  In the caption they say
+    # PAGEBIT must be set but there is no PAGEBIT.  It is PAGE_SEL.  
+    # I suppose keeping this as Si5338 lore passed down by wizards is good
+    # for job security
+    
     # call to I2C driver goes here
     deviceAddress = 0x70  # fixed I2C address for si5338
     
     # change address and data to 8 bits
-    register = register & 0xFF
-    data = data & 0xFF
+    register = int(register & 0xFFFF)
+    if (register > 255):
+        register = register - 255
+        pageBit = True
+    data = int(data & 0xFF)
     response = 0
-    #bus = smbus.SMBus(1)
+    bus = smbus.SMBus(1)
+
+    # change pages if desired register > 255
+    if (pageBit == True):
+       bus.write_byte_data(deviceAddress,255,1)
+
     if (wrb):  #do a write
-        pass
-     #   bus.write_byte_data(deviceAddress,register,data)
+        if (verbose):
+           print "WRITE TO I2C:"
+        bus.write_byte_data(deviceAddress,register,data)
     else:  # do a read
-        pass
-      #  response = bus.read_byte_data(deviceAddress,register)
+        if (verbose) :
+           print "READ FROM I2C:"
+        response = bus.read_byte_data(deviceAddress,register)
+
+    # if page was changed restore it
+    if (pageBit == True):
+        bus.write_byte_data(deviceAddress,255,0)
+
+    # print debugging info 
     if (verbose):
-        print "regOp5338:"
+        print "regOp5338: READ FROM I2C"
+        print "deviceAddress = ",deviceAddress
         print "wrb: ",wrb
         print "register: ",register
         print "data: ",data
         print "response: ",response
-    pass
+
+    return response 
+
+
+
 
 #### this function is for HIPSTER emulation only
 #### It is not used to test HIPSTER hardware
-
 
 def executeCRCommand():
     """ function that writes to the emulated HIPSTER SPI
