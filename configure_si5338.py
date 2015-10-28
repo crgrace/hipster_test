@@ -45,9 +45,9 @@ def pauseLOL():
     # pause LOL
     writeRegister5338(241,setBit(readRegister5338(241),7))
 
-def initiateLockingofPLL():
+def initiateLockingOfPLL():
     # initiate locking of PLL   
-    writeRegister5338(246,setBit(readRegister(246),1))
+    writeRegister5338(246,setBit(readRegister5338(246),1))
 
 
 def configurePLLForLocking():
