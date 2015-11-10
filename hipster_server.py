@@ -32,6 +32,9 @@ import spidev   # for accessing Raspberry Pi SPI kernal module
 import smbus   # for accessing Raspberry Pi SMBUS (I2C) kernal module
 
 
+# set up Raspberry Pi GPIOs for HIPSTER SPI
+hipster_spi_ops.setupGPIO()
+
 #### globals used for test
 #
 # HIPSTER configuration map is global variable
@@ -65,7 +68,8 @@ clrf = 384*[0]  # initialize with all zeros
 ####
 
 #def Server(serverName="localhost",port=50000):
-def Server(serverName="131.243.115.189",port=50000):
+#def Server(serverName="131.243.115.189",port=50000):
+def Server(serverName="",port=50000,verbose=False):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Bind the socket to the address given to the function
     serverAddress = (serverName,port)  
@@ -79,14 +83,15 @@ def Server(serverName="131.243.115.189",port=50000):
             print >>sys.stderr, 'client connected:', clientAddress
             while True:
                 dataString = connection.recv(64)
-                print >>sys.stderr, 'received "%s"' % dataString
-                print "dataString = ",dataString
+                if (verbose):
+                    print >>sys.stderr, 'received "%s"' % dataString
+                    print "dataString = ",dataString
                 if dataString == "":
                     connection.close()
                     break
                 elif (dataString):  # do not parse empty string     
                     receivedData = serverOp(dataString)
-                    print "sending ",receivedData," to client."
+                    if (verbose): print "sending ",receivedData," to client."
                     connection.sendall(receivedData)
                 else:
                     break
@@ -198,34 +203,31 @@ def regOpHIPSTER(wrb,register,data,verbose=True):
     spiCommand = (wrb << 15 | register) & 0xFFFF
     message = str((int(spiCommand << 16) + int(data & 0xFFFF)))
     # call to SPI driver goes here
-#    dataHIPSTER = hipster_spi_ops.spiMaster(wrb,register,data)
+    dataHIPSTER = (0x40000000 | hipster_spi_ops.spiMaster(wrb,register,data))
 
 
-#    if (verbose):
-#        print "regOpHIPSTER:"
-#        print "wrb: ",wrb
-#        print "register: ",register
-#        print "data: ",data
+    if (verbose):
+        print "regOpHIPSTER:"
+        print "wrb: ",wrb
+        print "register: ",register
+        print "data: ",data
 #        print "returned data: ",dataHIPSTER
 
-#    return str(dataHIPSTER)
+    return str(dataHIPSTER)
     
 # read or write data from the fake HIPSTER
- 
-    if (wrb): # write op requested
-        spiMap[register] = data
-        if (register == CR):
-            executeCRCommand()
-        print "Writing ",data, " to Reg ",register&0x7FFF
-        dataHIPSTER = 0xFFFF  # all FFFF indicates successful write
-    else:  # read op requested
-        dataHIPSTER = str(( (0x4000 | register) << 16) | spiMap[register])
-        print "Read ", spiMap[register], " from Reg ",register
- 
-    if (verbose):
-        print "dataHIPSTER = ",dataHIPSTER 
-
-    return str(dataHIPSTER)      
+#    if (wrb): # write op requested
+#        spiMap[register] = data
+#        if (register == CR):
+#            executeCRCommand()
+#        print "Writing ",data, " to Reg ",register&0x7FFF
+#        dataHIPSTER = 0xFFFF  # all FFFF indicates successful write
+#    else:  # read op requested
+#        dataHIPSTER = str(( (0x4000 | register) << 16) | spiMap[register])
+#        print "Read ", spiMap[register], " from Reg ",register
+#    if (verbose):
+#        print "dataHIPSTER = ",dataHIPSTER 
+#    return str(dataHIPSTER)      
 
 
 def regOpDAC(dacID,data,verbose=True):
@@ -252,8 +254,8 @@ def regOpDAC(dacID,data,verbose=True):
     bytesToSend[2] = int((data >> 8) & 0xFF)
     bytesToSend[3] = int(data & 0xFF)
     print "bytesToSend = ",bytesToSend
-    # execute spi transaction (spi.xfer2 keeps 
-    # CS asserted (low) between bytes)    
+# execute spi transaction (spi.xfer2 keeps 
+# CS asserted (low) between bytes)    
     response = spi.xfer2(bytesToSend)
 #    response = spi.xfer2(8)
 #    response = 0
