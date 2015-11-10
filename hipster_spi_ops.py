@@ -33,6 +33,7 @@ def setupGPIO():
     GPIO.setup(SCLK, GPIO.OUT)  # SCLK
     GPIO.setup(MOSI, GPIO.OUT)  # MOSI
     GPIO.setup(MISO, GPIO.IN)   # MISO
+    spiInit()
 
 def pause():
     """ pause for a time interval equal to SLEEPTIME microseconds

@@ -4,7 +4,7 @@ Created on Wed Aug 5 18:26:37 2015
 
 @author: CRGrace@lbl.gov
 """
-import sys, os, socket
+import sys, os, socket, time
 
 NUMREGS = 54
 MBR = 54  #mailbox register
@@ -207,6 +207,19 @@ def clearBit(word,bit):
     mask = ~(1 << bit)
     return(word & mask)
 
+def setBitInRegister(register,bit):
+    """ sets a single bit in a HIPSTER register
+    """
+    oldCommand = readRegister(register)
+    newCommand = setBit(oldCommand,bit)
+    writeRegister(register,newCommand)
+
+def clearBitInRegister(register,bit):
+    """ clears a single bit in a HIPSTER register
+    """
+    oldCommand = readRegister(register)
+    newCommand = clearBit(oldCommand,bit)
+    writeRegister(register,newCommand)
 
 def writeRegister(register,data,deviceID=0):
     """ writes 16-bit data to SPI register
@@ -231,7 +244,7 @@ def writeRegister(register,data,deviceID=0):
     # client not sending a fixed number of bytes when register 0 is
     # requested.  Yuck.
     spiCommand = (0xC000 | register) & 0xFFFF
-    print "writeRegisterTCPIP: spiCommand = ",spiCommand
+    #print "writeRegisterTCPIP: spiCommand = ",spiCommand
     message = str((deviceID << 32) | (int(spiCommand) << 16) | int(data & 0xFFFF))
     serverOp(message)
 
@@ -250,19 +263,24 @@ def readRegister(register,data=5555,deviceID=0):
 
     message = str(((deviceID << 32) | (0x4000 | register) << 16) | int(data & 0xFFFF))
     dataHIPSTER = serverOp(message) 
-    print "readRegisterTCPIP: ",dataHIPSTER
+    ##print "readRegister: ",dataHIPSTER, "hex:",format(dataHIPSTER,'#04x')
     return int(dataHIPSTER)
- 
-def serverOp(message,serverName="131.243.115.189",port=50000,verbose=True):
+
+def dumpRegister(register,deviceID=0):
+    """ reads 16-bit data from device and displays on screen
+    """
+    dataHIPSTER = readRegister(register)
+    print "dumpRegister: ",dataHIPSTER, "hex:",format(dataHIPSTER,'#04x')
+     
+def serverOp(message,serverName="hipster-pi2.dhcp.lbl.gov",port=50000,verbose=False):
+#def serverOp(message,serverName="131.243.115.189",port=50000,verbose=False):
 #def serverOp(message,serverName="localhost",port=50000,verbose=False):
     """The serverOp command length is five bytes.  First byte is device ID and  
     indicates if it is a read or write and what device is requested.
     Bytes 2 and 3 are the 16-bit register address
     Bytes 4 and 5 are the 16-bit data word
     """
-    print "serverOp:"
-    verbose = True 
-    if (verbose): print "message sent = ",message
+    if (verbose): print "serverOp: message sent = ",message
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Bind the socket to the address given to the function
@@ -272,7 +290,6 @@ def serverOp(message,serverName="131.243.115.189",port=50000,verbose=True):
     if (verbose): print "serverAddress = ",serverAddress
 
     try:
-    
         sock.connect(serverAddress)
         sock.sendall(message)
         amountReceived = 0
@@ -288,7 +305,7 @@ def serverOp(message,serverName="131.243.115.189",port=50000,verbose=True):
     finally:
         sock.close()
     
-    data = int(dataReceived) & 0xFF 
+    data = int(dataReceived) & 0xFFFF 
     return data
 
 def calibrateADC():
@@ -397,6 +414,7 @@ def testCLRF(verbose=False):
         print "testCLRF: CLRF test failed.  There were ",errors," errors."
     else:
         if (verbose): print "testCLRF: CLRF test passed."  
+    restoreDefaultsToCorrectionLogic()
 
 def testSPI(verbose=False):
     """ Tests SPI registers using MATS++ algorithm
@@ -425,7 +443,7 @@ def testSPI(verbose=False):
         writeRegister(register,0)
 
     for register in range(0,52): 
-        print "register = ",register,"[register] = ",readRegister(register)
+        if (verbose): print "register = ",register,"[register] = ",readRegister(register)
         if (register == 20):
             continue
         if (readRegister(register) != 0):
@@ -481,8 +499,45 @@ def readValueFromOffsetDAC():
     writeRegister(CR,0) # clear command register    
     return readRegister(MBR)    
 
+def powerDownTX(whichTX):
+    """ powers down a TX driver
+        usage: powerDownTX(<whichTX>). which TX from 0 to 5.
+    """
+
+    if (whichTX < 0) or (whichTX > 5):
+        print "powerDownTX: Range Error.  TX out of range."
+        print "usage: powerDownTX(<whichTX>). whichTX from 0 to 5"
+    else:
+        setBitInRegister(22,whichTX+8)
+
+def powerDownAllTXs():
+    """ powers down all TXs
+    """
+
+    for whichTX in range(0,6):
+        powerDownTX(whichTX)
+
+def powerUpTX(whichTX):
+    """ powers up a TX driver specified by whichTX
+        usage: powerUpTX(<whichTX>). which TX from 0 to 5.
+    """
+
+    if (whichTX < 0) or (whichTX > 5):
+        print "powerUpTX: Range Error.  TX out of range."
+        print "usage: powerUpTX(<whichTX>). whichTX from 0 to 5"
+    else:
+        clearBitInRegister(22,whichTX+8)
+
+def powerUpAllTXs():
+    """ powers up all TXs
+    """
+
+    for whichTX in range(0,6):
+        powerUpTX(whichTX)
+
 def powerDownADC(whichADC):
     """ powers down an ADC 
+        print "usage: powerDownADC(<whichADC>).  whichADC from 0 to 23"
     """
 
     if (whichADC < 0) or (whichADC > 23):
@@ -491,14 +546,10 @@ def powerDownADC(whichADC):
     else:
         if (whichADC < 16):
             # ADCs 0 through 15 in SPI register 23
-            oldCommand = readRegister(23)
-            newCommand =  setBit(oldCommand,whichADC)
-            writeRegister(23,newCommand)
+            setBitInRegister(23,whichADC)
         else:
             # ADCs 16 through 23 in SPI register 24
-            oldCommand = readRegister(24)
-            newCommand = setBit(oldCommand,whichADC-16)
-            writeRegister(24,newCommand)
+            setBitInRegister(24,whichADC-16)
 
 def powerDownAllADCs():
     """ powers down all ADCs
@@ -508,6 +559,7 @@ def powerDownAllADCs():
 
 def powerUpADC(whichADC):
     """ powers up an ADC
+        print "usage: powerUpADC(<whichADC>).  whichADC from 0 to 23"
     """
 
     if (whichADC < 0) or (whichADC > 23):
@@ -516,14 +568,10 @@ def powerUpADC(whichADC):
     else:
         if (whichADC < 16):
             # ADCs 0 through 15 in SPI register 23
-            oldCommand = readRegister(23)
-            newCommand = clearBit(oldCommand,whichADC)
-            writeRegister(23,newCommand)
+            clearBitInRegister(23,whichADC)
         else:
             # ADCs 16 through 23 in SPI register 24
-            oldCommand = readRegister(24)
-            newCommand = clearBit(oldCommand,whichADC-16)
-            writeRegister(24,newCommand)
+            clearBitInRegister(23,whichADC-16)
 
 def powerUpAllADCs():
     """ powers up all ADCs
@@ -535,18 +583,20 @@ def disableTestBuffer():
     """ disables the testbuffer. 
     """
     
-    oldCommand = readRegister(22)
-    newCommand = setBit(oldCommand,1)
-    writeRegister(22,newCommand)
+    setBitInRegister(22,1)
 
 def enableTestBuffer():
     """ enables the testbuffer. 
     """
     
-    oldCommand = readRegister(22)
-    newCommand = clearBit(oldCommand,1)
-    writeRegister(22,newCommand)
-    
+    clearBitInRegister(22,1)
+
+def enableInternalReferences():
+    """ enables internal ADC references. 
+    """
+
+    clearBitInRegister(2,8)    
+
 def configureTestBuffer(whichSignal):    
     """ configures the analog testbuffers.
     """
@@ -571,24 +621,95 @@ def configureTestBuffer(whichSignal):
     writeRegister(21,command) 
 
 def readbackBias(whichSignal):
-    """ configures the bias readback 
+    """ configures the bias readback
+        The current selected here will be sent to I_AFE for the AFE
+        or I_TX for the TX 
+
+        Available readback currents:
+        MASTER: HIPSTER master bias current
+        ADC: ADC bias current
+        CML_50U: CML bias current (actual current is 8X this value)
+        REFBUFFER: ADC Reference Buffer bias current
+        PLL_CP: PPLL charge pump current
+    """
+    #print "whichSignal = ", whichSignal
+    oldCommand = readRegister(20)  # bias_readback is bits 1:0 of reg 20  
+    if (whichSignal == "MASTER"): 
+        command = 0
+    elif (whichSignal == "ADC") or (whichSignal == "CML_50U"):  
+        command = 1
+    elif (whichSignal == "REFBUFFER") or (whichSignal == "PLL_CP"):
+        command = 3
+    else:
+        print("readbackBias: bias readback signal unknown.")
+        print("Valid inputs are: \"MASTER\" \"ADC\" \"CML_50U\" \
+        \"REFBUFFER\" \"PLL_CP\" ")
+
+    newCommand = (oldCommand & 0xFFFC) | command
+    writeRegister(20,newCommand)
+
+def setBias(whichBias,value):
+    """ configures the various bias blocks
+    """
+    
+    if (value > 15):
+        print "setBias: Error. Input value must be less than 16)"
+        print "Bias not set"
+        return
+
+    oldCommand = readRegister(20)
+    if (whichBias == "MASTER"):
+        newCommand = (oldCommand & 0xFF0F) | (value << 4)
+    elif (whichBias == "CML"):
+        newCommand = (oldCommand & 0XF0FF) | (value << 8)
+    elif (whichBias == "REFBUFFER"):
+        newCommand = (oldCommand & 0x0FFF) | (value << 12)
+    else:
+        print("setBias: bias destination unknown.  Bias not set.")
+        print("Valid inputs are: \"MASTER\" \"CML\" \"REFBUFFER\" ")
+        return
+
+    writeRegister(20,newCommand)
+        
+def setADCBias(whichBias,value):
+    """ configures the ADC bias current
+        ADC bias current is master_bias current * ADC setting 
+        (see datasheet)
     """
 
-    oldCommand = readRegister(20)  # bias_readback is bits 1:0 of reg 20  
-    if (whichSignal == "MASTER"):
-        command = 0
-        newCommand = clearBit(oldCommand,0)
-        newCommand = clearBit(newCommand,1) 
-    elif (whichSignal == "ADC" or "CML_50U"):       
-        command = 1
-        newCommand = setBit(oldCommand,0)
-        newCommand = clearBit(newCommand,1) 
-    elif (whichSignal == "REFBUFFER" or "PLL_CP"):
-        command = 3
-        newCommand = setBit(oldCommand,0)
-        newCommand = setBit(newCommand,1) 
-    writeRegister(20,newCommand)
-    
+    if (value > 15):
+        print "setADCBias: Error. Input value must be less than 16)"
+        print "Bias not set"
+        return
+
+    oldCommand = readRegister(2)
+
+    if (whichBias == "ADC"):
+        newCommand = (oldCommand & 0xFFF0) | value
+    elif (whichBias == "COMP"):
+        newCommand = (oldCommand & 0XFF0F) | (value << 4)
+    else:
+        print("setADCBias: bias destination unknown.  Bias not set.")
+        print("Valid inputs are: \"ADC\" \"COMP\" \"REFBUFFER\" ")
+        return
+
+    writeRegister(2,newCommand)
+
+def setBiasPLL(value):
+    """ configures the PLL charge pump current
+        PLL current is master_bias current * PLL setting
+        (see datasheet)
+    """
+
+    if (value > 15):
+        print "setPLLBias: Error. Input value must be less than 16)"
+        print "Bias not set"
+        return
+
+    oldCommand = readRegister(18)
+    newCommand = (oldCommand & 0XFF0F) | (value << 4)
+    writeRegister(18,newCommand)
+
 def kickstartBGR():
     """forces HIPSTER to restart the BGR.  This will only be
     needed if the BGR startup circuit fails.
@@ -604,6 +725,53 @@ def kickstartBGR():
     writeRegister(20,newCommand)
     writeRegister(20,oldCommand)
 
+def kickstartPLL(vctrl=0.8):
+    """ kickstarts the PLL by forcing and then removing force
+    """
+
+    setDAC("VCTRL",vctrl)
+    #force PLL control voltage
+    setBitInRegister(19,8)
+    #remove force
+    clearBitInRegister(19,8)
+
+def lockPLL():
+    """ performs operations to lock HIPSTER PLL.  This function does
+    the following:
+    1. disables internal bandgap
+    2. enables external DAC and sets it to voltage that constrains the 
+        VCO to slower speeds than the feedback divider
+    3. raises bandgap voltage to nominal in small steps to keep PLL in lock
+    """
+    
+    # disable internal BGR
+    setBitInRegister(22,6)        
+
+    enableDACs()
+    setDAC("BGR_AFE",0.01)
+    setDAC("BGR_TX",1.0)
+    for bgrValue in (1.0,1.05,1.1,1.15,1.2,1.23):
+        time.sleep(0.01)
+        setDAC("BGR_TX",bgrValue)
+    setDAC("BGR_AFE",1.23)
+    setDAC("BGR_TX",1.23)
+
+
+def observeVCTRL(disable=False):
+    
+    if (disable):
+        clearBitInRegister(19,2)
+    else:
+        setBitInRegister(19,2)
+
+def forceVCTRL(value=1.0):
+    
+    setDAC("VCTRL",value)
+    setBitInRegister(19,8)
+
+def unforceVCTRL():
+    
+    clearBitInRegister(19,8)
 def softReset():
     """ forces the JESD204B interface to reset.  This
     should be used when testing the CLRF.  This could also be useful
@@ -670,9 +838,9 @@ def selectDAC(whichDAC):
 
     
     DAC2:
-    A: VCM -- HIPSTER ADC common-mode voltage
-    B: BGR_AFE -- bandgap reference voltage for front end
-    C: BGR_TX -- bandgap reference voltage for TX section
+    B: VCM -- HIPSTER ADC common-mode voltage
+    F: BGR_AFE -- bandgap reference voltage for front end
+    H: BGR_TX -- bandgap reference voltage for TX section
     D: VCTRL -- Driven VCO control voltage for PLL eval
 
     """
@@ -696,18 +864,19 @@ def selectDAC(whichDAC):
     elif (whichDAC == "VCM"):
         (DAC, channel) = 1, 0
     elif (whichDAC == "BGR_AFE"):
-        (DAC, channel) = 2, 1
+        (DAC, channel) = 2, 5
     elif (whichDAC == "BGR_TX"):
-        (DAC, channel) = 2, 2
+        (DAC, channel) = 2, 7
     elif (whichDAC == "VCTRL"):
         (DAC, channel) = 2, 3
     else:
         print "setDAC: Error.  ",DAC," is invalid DAC ID."
         print "usage: available DACs are: \"VREF_P\" \"VREF_N\" \"VTH_P\" \"VTH_N\" \"VCM\" \"OFFSET_TOP\" \"OFFSET_BOT\" \"BGR_AFE\" \"BGR_TX\" \"VCTRL\" \"ADC_1\" \"ADC_2\" "
+        return
     return DAC, channel
 
 
-def setDAC(whichDAC,desiredVoltage):
+def setDAC(whichDAC,desiredVoltage,verbose=False):
     """ sets output of test DACs on HIPSTER eval board
     The eval board includes two octal 16-bit DACs (part number DAC8568)
     for a total of 16 DACs, 12 of which are actually used.
@@ -726,7 +895,7 @@ def setDAC(whichDAC,desiredVoltage):
         19:4  : 16-bit data word
         3:0   : function bits (X)
     """
-    print "desiredVoltage = ",desiredVoltage
+    if (verbose): print "desiredVoltage = ",desiredVoltage
     if not(0 < desiredVoltage < 3):
         print "setDAC: error.  Voltage out of range (0 - 3 V)."   
 
@@ -744,9 +913,10 @@ def setDAC(whichDAC,desiredVoltage):
     # the DAC uses 32-bit commands.  To keep the communications to 16-bits
     # we send the top 16 bits in one write and the bottom 16 bits in a second 
     DACcommand = (commandBits << 24) | (channel << 20) | (data << 4)
-    print "data = ",data	
-    print "channel = ",channel
-    print "DACcommand = ",DACcommand
+    if (verbose):
+        print "data = ",data	
+        print "channel = ",channel
+        print "DACcommand = ",DACcommand
     DACcommand_MSB = (DACcommand >> 16) & 0xFFFF
     DACcommand_LSB = DACcommand & 0xFFFF
     writeRegister(DACcommand_MSB,DACcommand_LSB,DAC)
@@ -798,11 +968,22 @@ def configureSSO(whichADC,dataSelect=1):
     Command = 0x8000 | dataSelect << 6 | whichADC 
     writeRegister(22,Command)
  
+def enableSSO():
+    """ enables the SSO
+    """
+    setBitInRegister(5,7)
     
 def disableSSO():
     """ disables the SSO
     """
-    writeRegister(22,clearBit(readRegister(5)))
+    clearBitInRegister(5,7)
+
+def powerDownHIPSTER():
+    """ fully powers down HIPSTER
+    """ 
+    
+    writeRegister(20,0xFFFF)
+    writeRegister(22,0xFFFF)
 
 def make_bin_from_int(a):
     '''returns a 16-bit string calculated from integer argument'''
@@ -900,15 +1081,19 @@ def dumpConfigMap():
     for reg in range(0,len(configMap)):
         print "dumpConfigMap: Reg = ",reg," Data = ",configMap[reg]
 
-def dumpSpiMap(verbose=False):
+def dumpSpiMap(fileName="SpiMapDump.txt",verbose=False):
     """ reads out the spiMap 
     spiMap is the emulated map inside HIPSTER
     """
     global spiMap
+    file = open(fileName, 'w+')
     for reg in range(0,len(spiMap)):
         data = readRegister(reg)
+        spiMap[reg] = data
+        print >> file,reg," ",format(data,'#04x') 
         if (verbose):
-            print "dumpSPIMap: Reg = ",reg," Data = ",data
+            print "dumpSPIMap: Reg = ",reg," Data = ",format(data,'#04x')
+    file.close
     return spiMap
 
 def isSpiMapDefault():
