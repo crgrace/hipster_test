@@ -263,14 +263,13 @@ def readRegister(register,data=5555,deviceID=0):
 
     message = str(((deviceID << 32) | (0x4000 | register) << 16) | int(data & 0xFFFF))
     dataHIPSTER = serverOp(message) 
-    ##print "readRegister: ",dataHIPSTER, "hex:",format(dataHIPSTER,'#04x')
     return int(dataHIPSTER)
 
 def dumpRegister(register,deviceID=0):
     """ reads 16-bit data from device and displays on screen
     """
     dataHIPSTER = readRegister(register)
-    print "dumpRegister: ",dataHIPSTER, "hex:",format(dataHIPSTER,'#04x')
+    print "dumpRegister: ",hex(dataHIPSTER)
      
 def serverOp(message,serverName="hipster-pi2.dhcp.lbl.gov",port=50000,verbose=False):
 #def serverOp(message,serverName="131.243.115.189",port=50000,verbose=False):
@@ -749,8 +748,8 @@ def lockPLL():
 
     enableDACs()
     setDAC("BGR_AFE",0.01)
-    setDAC("BGR_TX",1.0)
-    for bgrValue in (1.0,1.05,1.1,1.15,1.2,1.23):
+    setDAC("BGR_TX",0.9)
+    for bgrValue in (0.9,1.05,1.1,1.15,1.2,1.23):
         time.sleep(0.01)
         setDAC("BGR_TX",bgrValue)
     setDAC("BGR_AFE",1.23)
@@ -772,6 +771,7 @@ def forceVCTRL(value=1.0):
 def unforceVCTRL():
     
     clearBitInRegister(19,8)
+
 def softReset():
     """ forces the JESD204B interface to reset.  This
     should be used when testing the CLRF.  This could also be useful

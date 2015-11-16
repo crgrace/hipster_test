@@ -152,7 +152,7 @@ def enableOutputs():
     # enable Outputs
     writeRegister5338(230,clearBit(readRegister5338(230),4))
 
-def registerOp5338(wrb,register,data):
+def registerOp5338(wrb,register,data,verbose=False):
     """ register operation for Si5338
     requires that the serverOp() function in hipster.py is available.
     the command is five bytes.  First byte is device ID and  
@@ -173,11 +173,12 @@ def registerOp5338(wrb,register,data):
     if (wrb): 
         register = register | 0x8000
     message = str((deviceID << 32) | (register << 16) | data)
-    print "registerOp5338:"
-    print "wrb = ",wrb
-    print "deviceID = ",deviceID
-    print "register = ",register & 0x7FFF
-    print "data = ",data
+    if (verbose): 
+        print "registerOp5338:"
+        print "wrb = ",wrb
+        print "deviceID = ",deviceID
+        print "register = ",register & 0x7FFF
+        print "data = ",data
 
     return serverOp(message)
 
@@ -203,6 +204,7 @@ def readConfigMapFromFile(inputFile,verbose=False):
     1,00h
     2,31h
     """
+    debug = False
     try:
         f = open(inputFile)
     except IOError:
@@ -211,12 +213,13 @@ def readConfigMapFromFile(inputFile,verbose=False):
 
     configMap = 355*[0]
     for line in iter(f):
-	print "config file line # = ",line
+	if (verbose): print "config file line # = ",line
         if not (line.startswith("#")):
             register,word = line.split(',') 
-            print type(register)
-            print type(word)
-            print register,word,word[:-1]
+            if (debug):
+                print type(register)
+                print type(word)
+                print register,word,word[:-1]
         # convert hex word to decimal, drop the trailing 'h', and write to map
             regValue = "0x"+word.split('h')[0]
             configMap[int(register)]  = int(regValue,16)
