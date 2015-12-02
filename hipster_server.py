@@ -23,6 +23,7 @@ Bytes 4 and 5 are the 16-bit data word
         1    | DAC 1
         2    | DAC 2
         3    | Si5338 clock generator
+        4    | RS-232 Serial Port (for SSO)
 """
 
 import sys, socket
@@ -169,6 +170,8 @@ def serverOp(dataString,verbose=False):
         dataStringInt = dataStringInt << 16
         dataSi5338 = str(dataStringInt | response)
         print "dataSi5338 string = ",dataSi5338
+    elif (deviceID == 4):
+        dataSSO = regOpSSO()
     else:
         print "serverOP error: device ID out of range."
         print "deviceID :  device"
@@ -177,6 +180,7 @@ def serverOp(dataString,verbose=False):
         print "1    | DAC 1"
         print "2    | DAC 2"
         print "3    | Si5338 clock generator"
+        print "4    | RS-232 Serial Port (for SSO)"
 
     # return initial message if a write, otherwise return from HIPSTER
     if (wrb):
@@ -191,8 +195,11 @@ def serverOp(dataString,verbose=False):
         print "serverOp: returning data from Si5338 clock generator"
         print "data returned = ",dataSi5338 
         return dataSi5338
+    elif ((wrb == 0) and (deviceID == 4):
+        print "servierOp: returning data from SSO via RS232 serial port"
+        return dataSSO
     else:
-        print "serverOp: read request on non-HIPSTER device"
+        print "serverOp: ERROR: read request on non-HIPSTER device"
 
 def regOpHIPSTER(wrb,register,data,verbose=True):
     """ reads or writes to a HIPSTER register via SPI 
@@ -266,7 +273,7 @@ def regOpDAC(dacID,data,verbose=True):
         print "data MSB: ",(data >> 16) & 0xFFFF,"data LSB: ",data & 0xFFFF
         print "returned data: ",response
 
-def regOp5338(wrb,register,data,verbose=True):
+def regOp5338(wrb,register,data,verbose=False):
     """ read or writes to a Si5338 register via I2C
         Si5338 7-bit slave address is 1110000
     """
@@ -321,8 +328,19 @@ def regOp5338(wrb,register,data,verbose=True):
 
     return response 
 
-
-
+def regOpSSO(port="/dev/ttyUSB1",baud=3000000):
+    ser = serial.Serial(port,baud,timeout=0)
+    ser = flushInput()
+    preReads = 2
+    for i in range(preReads):
+        _ = ser.readline()
+    validData = False
+    while !(validData):
+        rawData = ser.readline()
+        if (len(rawData) == 9): # got correctly formatted data
+            receivedData = int(rawData[0:3],16)
+            validData = True
+    return receivdedData 
 
 #### this function is for HIPSTER emulation only
 #### It is not used to test HIPSTER hardware

@@ -7,16 +7,26 @@ if (verbose): print "Loading SPI map into HIPSTER"
 h.restoreSpiMapToDefault()
 if (verbose): print "Configuring HIPSTER"
 
-# powerdown TX and ADCs
+h.enableDACs()
+h.setDACsToDefaults()
+h.setADC2(1.4)
+
+# powerdown TX and ADCs (expect ADC 0)
 h.powerDownAllTXs()
 h.powerDownAllADCs()
+h.powerUpADC(0)
 
 # configure HIPSTER to observe feedback divider
 h.setBitInRegister(19,0)
 
+
 # set HIPSTER biasing
 h.setBias("MASTER",7)
 h.setBias("CML",5)
+
+# power down internal BGR
+#h.setBitInRegister(22,6)
+
 
 # configure SI5338 clock chip
 if (verbose): print "Configuring Si5338 Clock Chip"
@@ -32,17 +42,29 @@ h.clearBitInRegister(18,5)  # R1 bit 1
 h.setBitInRegister(18,4)  # R1 bit 0
 
 if (verbose): print "Locking PLL"
-h.lockPLL()
-# external clock
-h.setBitInRegister(19,1)
-# power up transmitter #1
-h.clearBitInRegister(22,9)
+#h.lockPLL()
 
-# take JESD out of reset 
+# deassert out of reset 
 # (need to figure out why we need to do this!)
-#h.setBitInRegister(27,7)
+h.setBitInRegister(27,7)
 
-# set JESD testmode to Send /K/
-h.setBitInRegister(27,0)
+if (verbose): print "Configuring ADC"
+
+#configure SSO
+h.enableSSO()
+h.configureSSO(0)
+
+# configure calibration parameters
+h.writeRegister(3,0x000f)
+h.writeRegister(4,0x0001)
+
+#initialize Correction Logic
+h.restoreCorrectionLogicToDefault()
+
+h.enableDACs()
+h.setDACsToDefaults()
+h.setADC1(0.5)
+h.setOffsetMode(1)
+h.setPGA(1)
 
 if (verbose): print "Done"

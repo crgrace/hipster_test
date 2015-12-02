@@ -14,17 +14,19 @@ import math
 ###
 
 #f_ref = 75e6  # input reference frequency in Hz
-f_ref = 50e6
+#f_ref = 50e6
+f_ref = 25e6
 #f_ref = 37.5e6
 #f_ref = 23.667e6
 #f_out = 2.25e9 # PLL output frequency in Hz
-f_out = 1.125e9 
+#f_out = 1.125e9 
+f_out = 750e6 
 #f_out = 710e6
-k_vco = 3.5e9 # VCO gain (measured) in Hz/V
-f_loop = 5e6  # desired PLL Loop bandwidth in Hz
+k_vco = 2e9 # VCO gain (measured) in Hz/V
+f_loop = 2e6  # desired PLL Loop bandwidth in Hz
 master_bias_adj = 7 # 4-bit decimal number indicating masterbias current
-pll_cp_bias_adj = 13 # 4-bit decimal number indicating charge-pump current
-pm = 88 # desired loop phase margin in degrees (higher PM leads to lower jitter)
+pll_cp_bias_adj = 12 # 4-bit decimal number indicating charge-pump current
+pm = 80 # desired loop phase margin in degrees (higher PM leads to lower jitter)
 
 ###############
 

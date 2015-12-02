@@ -41,142 +41,6 @@ clrf = 384*[0]  # initialize with all zeros
 #    3 bits for the stage
 #    1 bit for the weight
 
-
-# cmd default values in decimal    
-CMD_DEFAULTS = {'pga_bypass_preamp' : 0,
-                'pga_hg' : 1,
-                'pga_gain_sel' : 4,
-                'offset_mode' : 3,
-                'offset_dac_default' : 31,
-                'offset_channel' : 0,
-                'adc_bias_adj' : 7,
-                'adc_comp_bias_adj' : 5,
-                'adc_extern_reference' : 0,
-                'adc_output_format' : 1,
-                'cal_cycles' : 15,
-                'calbits' : 3,
-                'sso_adc_select' : 0,
-                'sso_data_select' : 0,
-                'sso_enable' : 0,
-                'tx_bypass_eq' : 1,
-                'eq_precursor_tap_sign' : 1,
-                'eq_cursor_tap_sign' : 1,
-                'eq_postcursor_tap_sign' : 1,
-                'bypass_tap_ctrl0' : 7,
-                'bypass_tap_ctrl1' : 7,
-                'bypass_tap_ctrl2' : 7,
-                'bypass_tap_ctrl3' : 7,
-                'bypass_tap_ctrl4' : 7,
-                'bypass_tap_ctrl5' : 7,
-                'precursor_tap_ctrl0' : 0,
-                'precursor_tap_ctrl1' : 0,
-                'precursor_tap_ctrl2' : 0,
-                'precursor_tap_ctrl3' : 0,
-                'precursor_tap_ctrl4' : 0,
-                'precursor_tap_ctrl5' : 0,
-                'cursor_tap_ctrl0' : 0,
-                'cursor_tap_ctrl1' : 0,
-                'cursor_tap_ctrl2' : 0,
-                'cursor_tap_ctrl3' : 0,
-                'cursor_tap_ctrl4' : 0,
-                'cursor_tap_ctrl5' : 0,
-                'postcursor_tap_ctrl0' : 0,
-                'postcursor_tap_ctrl1' : 0,
-                'postcursor_tap_ctrl2' : 0,
-                'postcursor_tap_ctrl3' : 0,
-                'postcursor_tap_ctrl4' : 0,
-                'postcursor_tap_ctrl5' : 0,
-                'c1_select' : 131,
-                'c2_select' : 3,
-                'r1_select' : 5,
-                'pll_cp_bias_adj' : 7,
-                'clk_mon_sel' : 0,
-                'bypass_vco' : 0,
-                'observe_vctrl' : 0,
-                'observe_pfd' : 0,
-                'force_vctrl' : 0,
-                'bypass_retimer' : 1,
-                'ldo_output_select' : 2,
-                'bias_readback' : 0,
-                'bgr_kickstart' : 0,
-                'master_bias_adj' : 8,
-                'cml_bias_adj' : 8,
-                'refbuffer_bias_adj' : 8,
-                'testbuffer_ctrl' : 0,
-                'pd_lvds_tx' : 0,
-                'pd_testbuffer' : 1,
-                'pd_precursor' : 1,
-                'pd_cursor' : 1,
-                'pd_postcursor' : 1,
-                'pd_ldo' : 0,
-                'pd_bgr' : 0,
-                'pd_tx0' : 0,
-                'pd_tx1' : 0,
-                'pd_tx2' : 0,
-                'pd_tx3' : 0,
-                'pd_tx4' : 0,
-                'pd_tx5' : 0,
-                'pd_vcobuffer' : 0,
-                'pd_readbackclk_mon' : 0,
-                'pd_analog_channel0' : 0,
-                'pd_analog_channel1' : 0,
-                'pd_analog_channel2' : 0,
-                'pd_analog_channel3' : 0,
-                'pd_analog_channel4' : 0,
-                'pd_analog_channel5' : 0,
-                'pd_analog_channel6' : 0,
-                'pd_analog_channel7' : 0,
-                'pd_analog_channel8' : 0,
-                'pd_analog_channel9' : 0,
-                'pd_analog_channel10' : 0,
-                'pd_analog_channel11' : 0,
-                'pd_analog_channel12' : 0,
-                'pd_analog_channel13' : 0,
-                'pd_analog_channel14' : 0,
-                'pd_analog_channel15' : 0,
-                'pd_analog_channel16' : 0,
-                'pd_analog_channel17' : 0,
-                'pd_analog_channel18' : 0,
-                'pd_analog_channel19' : 0,
-                'pd_analog_channel20' : 0,
-                'pd_analog_channel21' : 0,
-                'pd_analog_channel22' : 0,
-                'pd_analog_channel23' : 0,
-                'jesd_numlanes' : 2,
-                'jesd_ds_en' : 0,
-                'jesd_cr_en' : 1,
-                'jesd_bid' : 10,
-                'jesd_did' : 86,
-                'jesd_testmode' : 0,
-                'jesd_datasel' : 0,
-                'jesd_reset' : 0,
-                'jesd_testval0' : 64,
-                'jesd_testval1' : 128,
-                'jesd_testval2' : 192,
-                'jesd_testval3' : 256,
-                'jesd_testval4' : 320,
-                'jesd_testval5' : 384,
-                'jesd_testval6' : 448,
-                'jesd_testval7' : 512,
-                'jesd_testval8' : 576,
-                'jesd_testval9' : 640,
-                'jesd_testval10' : 704,
-                'jesd_testval11' : 768,
-                'jesd_testval12' : 832,
-                'jesd_testval13' : 896,
-                'jesd_testval14' : 960,
-                'jesd_testval15' : 1024,
-                'jesd_testval16' : 1088,
-                'jesd_testval17' : 1152,
-                'jesd_testval18' : 1216,
-                'jesd_testval19' : 1280,
-                'jesd_testval20' : 1344,
-                'jesd_testval21' : 1408,
-                'jesd_testval22' : 1472,
-                'jesd_testval23' : 1536,
-                }   
-        
-
 # REG default values in decimal            
 REG_DEFAULTS = [18,127,599,15,3,0,1,7,
                 30583,30583,0,0,0,0,0,0,
@@ -236,7 +100,6 @@ def writeRegister(register,data,deviceID=0):
         1    | DAC 1
         2    | DAC 2
         3    | Si5338 clock generator
-
     """
 
     # if this is a HIPSTER write, set WRB bit (set bit15 = 1) &
@@ -256,21 +119,43 @@ def readRegister(register,data=5555,deviceID=0):
     Bytes 4 and 5 are the 16-bit data word
     First bit of deviceID indicates read or write (write = 1, read = 0)
     Default device ID is 0 (HIPSTER)
+
+    deviceID :  device
+    ----------------
+        0    : HIPSTER
+        1    | DAC 1
+        2    | DAC 2
+        3    | Si5338 clock generator
     """
     # force bit 14 of SPI address = 1 is a kludge to deal with the
     # client not sending a fixed number of bytes when register 0 is
     # requested.  Yuck.
 
+    verbose = False
     message = str(((deviceID << 32) | (0x4000 | register) << 16) | int(data & 0xFFFF))
-    dataHIPSTER = serverOp(message) 
+    dataHIPSTER = serverOp(message)
+    if (verbose):
+        print "readRegister: dataHipster = ",dataHIPSTER 
     return int(dataHIPSTER)
 
 def dumpRegister(register,deviceID=0):
-    """ reads 16-bit data from device and displays on screen
+    """ reads 16-bit data from device and displays on screen in hex
     """
-    dataHIPSTER = readRegister(register)
-    print "dumpRegister: ",hex(dataHIPSTER)
-     
+
+    print "dumpRegister: ",hex(readRegister(register))
+
+def getSSO(numWords,verbose=False):
+    """ gets data from the HIPSTER Slow Serial Output (SSO).  
+        SSO is memory mapped to "magic" register 1000
+    """
+
+    receivedData = numWords*[0]
+    for i in range(numWords):
+        receivedData[i] = readRegister(1000) 
+        if (verbose):
+            print receivedData[i]
+    return receivedData
+
 def serverOp(message,serverName="hipster-pi2.dhcp.lbl.gov",port=50000,verbose=False):
 #def serverOp(message,serverName="131.243.115.189",port=50000,verbose=False):
 #def serverOp(message,serverName="localhost",port=50000,verbose=False):
@@ -279,6 +164,7 @@ def serverOp(message,serverName="hipster-pi2.dhcp.lbl.gov",port=50000,verbose=Fa
     Bytes 2 and 3 are the 16-bit register address
     Bytes 4 and 5 are the 16-bit data word
     """
+    verbose = False 
     if (verbose): print "serverOp: message sent = ",message
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -316,26 +202,28 @@ def calibrateADC():
     writeRegister(CR,0)  # clear command register
 
     
-def loadValueToCorrectionLogic(adc,stage,weight,value):    
+def writeValueToCorrectionLogic(adc,stage,weight,value):    
     """loads data value into Correction Logic register file (CLRF)
-    It does this in three steps.
+    It does this in three steps:
     1.  Load data we wish to write into Write Data Register (WDR)
     2.  Load Command Register with ADC, Stage, and Weight we wish to write
     3.  Clear Command Register  
     """
-    command = 0x9000 | 0x1000 | stage | (adc << 4) | (weight << 11) 
+    command = 0x9000 | stage | (adc << 4) | (weight << 11) 
+    #print "loadCorrectionLogic: command = ",hex(command)
     writeRegister(WDR,value)
     writeRegister(CR,command)   # execute CLRF load
     writeRegister(CR,0)  # clear command register
     
 def readValueFromCorrectionLogic(adc,stage,weight):
     """reads data value from Correction Logic register file (CLRF)
-    It does this in three steps.
+    It does this in three steps:
     1.  Load Command Register with ADC, Stage, and Weight we wish to read
     3.  Clear Command Register
     3.  Read back requested value from Mailbox Register
     """    
     command = 0x1000 | stage | (adc << 4) | (weight << 11) 
+    #print "readCorrectionLogic: command = ",hex(command)
     writeRegister(CR,command)  # execute CLRF read
     writeRegister(CR,0) # clear command register
     return readRegister(MBR)
@@ -353,9 +241,47 @@ def dumpCorrectionLogic(whichADC):
                 whichWeight = "w0"
             else:
                 whichWeight = "w2"
-            print whichADC,"   ",stage,"     ",whichWeight,"     ",value
-            
-def restoreDefaultsToCorrectionLogic():
+            print whichADC,"   ",stage,"     ",whichWeight,"     ",hex(value)
+
+def dumpCorrectionLogicToFile(whichADC,fileName="correction_logic.txt"):
+    """ Dumps contents of CLRF for specific ADC to file
+    """
+    file = open(fileName, 'w+')
+    print "dumping..."
+    for stage in range(0,8):
+        for weight in (0,1):
+            value = readValueFromCorrectionLogic(whichADC,stage,weight)
+            print >> file, hex(value)
+            if (weight == 0):
+                whichWeight = "w0"
+            else:
+                whichWeight = "w2"
+            print "ADC",whichADC," stage ",stage,' ',whichWeight,' ',hex(value)
+
+def loadCorrectionLogicFromFile(whichADC,fileName="correction_logic.txt"):
+    """ loads correction logic with the contents of a file
+    """
+    try:
+        values = open(fileName).read().splitlines()
+    except:
+        print "Error reading ",fileName,"."
+        print "CorrectionLogic(",whichADC,") not loaded."
+        return
+    index = 0
+    print "loading..."
+    for stage in range(0,8):
+        for weight in (0,1):
+            value = int(values[index],16)
+            writeValueToCorrectionLogic(whichADC,stage,weight,value)
+            if (weight == 0):
+                whichWeight = "w0"
+            else:
+                whichWeight = "w2"
+            print "ADC",whichADC," stage ",stage,' ',whichWeight,' ',hex(value)
+            index = index + 1 
+    
+
+def restoreCorrectionLogicToDefault():
     """restores Correction Logic register file (CLRF) to default values
     Applying a hardware reset to HIPSTER does this as well
     The defaults are loaded into the CLRF in two steps.
@@ -366,6 +292,14 @@ def restoreDefaultsToCorrectionLogic():
     writeRegister(CR,command)
     writeRegister(CR,0) # clear command register 
 
+def zeroOutCorrectionLogic(whichADC=0):
+    """ Writes Zero to all correction logic registers for whichADC
+    """
+    for stage in range(0,8):
+        for weight in (0,1):
+            writeValueToCorrectionLogic(whichADC,stage,weight,0)
+    
+    
 def testCLRF(verbose=False):
     """ Tests Correction Logic Register File using MATS++ algorithm
     MATS stands for Modified Algorithmic Test Sequence
@@ -384,7 +318,7 @@ def testCLRF(verbose=False):
     for adc in range(0,24):
         for stage in range(0,8):
             for weight in (0,1):
-                loadValueToCorrectionLogic(adc,stage,weight,0)
+                writeValueToCorrectionLogic(adc,stage,weight,0)
                 
     for adc in range(0,24):
         for stage in range(0,8):
@@ -392,7 +326,7 @@ def testCLRF(verbose=False):
                 if (readValueFromCorrectionLogic(adc,stage,weight) != 0):
                     print "testCLRF: CLRF error (1st pass). Expected 0"
                     errors += 1
-                loadValueToCorrectionLogic(adc,stage,weight,0xFFFF)
+                writeValueToCorrectionLogic(adc,stage,weight,0xFFFF)
                 
     for adc in range(23,-1,-1):
         for stage in range(7,-1,-1):
@@ -400,7 +334,7 @@ def testCLRF(verbose=False):
                 if (readValueFromCorrectionLogic(adc,stage,weight) != 0xFFFF):
                     print "testCLRF: CLRF error. Expected 0xFFFF"
                     errors = +1
-                loadValueToCorrectionLogic(adc,stage,weight,0)
+                writeValueToCorrectionLogic(adc,stage,weight,0)
 
     for adc in range(0,24):
         for stage in range(0,8):
@@ -493,10 +427,23 @@ def readValueFromOffsetDAC():
     2.  Clear Command Register
     3.  Read back requested value from Mailbox Register
     """
-    command = 0x0400
+    command = 0x1400
     writeRegister(CR,command)
     writeRegister(CR,0) # clear command register    
     return readRegister(MBR)    
+
+def writeValueToOffsetDAC():
+    """writes Offset DAC value from SPI register 1 
+    It does this is three steps.
+    1.  Load Command Register with Offset DAC access request bit set
+    2.  Clear Command Register
+    3.  Read back requested value from Mailbox Register
+    """
+    command = 0x9400
+    writeRegister(CR,command)
+    writeRegister(CR,0) # clear command register  
+    readValueFromOffsetDAC()  
+    return     
 
 def powerDownTX(whichTX):
     """ powers down a TX driver
@@ -506,6 +453,7 @@ def powerDownTX(whichTX):
     if (whichTX < 0) or (whichTX > 5):
         print "powerDownTX: Range Error.  TX out of range."
         print "usage: powerDownTX(<whichTX>). whichTX from 0 to 5"
+        print "TX not powered down."
     else:
         setBitInRegister(22,whichTX+8)
 
@@ -524,6 +472,7 @@ def powerUpTX(whichTX):
     if (whichTX < 0) or (whichTX > 5):
         print "powerUpTX: Range Error.  TX out of range."
         print "usage: powerUpTX(<whichTX>). whichTX from 0 to 5"
+        print "TX not powered up."
     else:
         clearBitInRegister(22,whichTX+8)
 
@@ -542,6 +491,7 @@ def powerDownADC(whichADC):
     if (whichADC < 0) or (whichADC > 23):
         print "powerDownADC: Range Error.  ADC out of range."
         print "usage: powerDownADC(<whichADC>).  whichADC from 0 to 23"
+        print "ADC not powered down."
     else:
         if (whichADC < 16):
             # ADCs 0 through 15 in SPI register 23
@@ -564,13 +514,14 @@ def powerUpADC(whichADC):
     if (whichADC < 0) or (whichADC > 23):
         print "powerUpADC: Range Error.  ADC out of range."
         print "usage: powerUpADC(<whichADC>).  whichADC from 0 to 23"
+        print "ADC not powered up."
     else:
         if (whichADC < 16):
             # ADCs 0 through 15 in SPI register 23
             clearBitInRegister(23,whichADC)
         else:
             # ADCs 16 through 23 in SPI register 24
-            clearBitInRegister(23,whichADC-16)
+            clearBitInRegister(24,whichADC-16)
 
 def powerUpAllADCs():
     """ powers up all ADCs
@@ -596,6 +547,12 @@ def enableInternalReferences():
 
     clearBitInRegister(2,8)    
 
+def disableInternalReferences():
+    """ disables internal ADC references.
+    """
+
+    setBitInRegister(2,8)
+
 def configureTestBuffer(whichSignal):    
     """ configures the analog testbuffers.
     """
@@ -617,6 +574,7 @@ def configureTestBuffer(whichSignal):
         print("configureTestBuffer: Test buffer signal unknown.")
         print("Valid inputs are: \"BGR_AFE\" \"VREF_P\" \"VREF_N\" \
         \"VCM\" \"VTH_P\"\ \"VTH_N\" \"VMASTERBIAS\" ")
+        return
     writeRegister(21,command) 
 
 def readbackBias(whichSignal):
@@ -629,7 +587,7 @@ def readbackBias(whichSignal):
         ADC: ADC bias current
         CML_50U: CML bias current (actual current is 8X this value)
         REFBUFFER: ADC Reference Buffer bias current
-        PLL_CP: PPLL charge pump current
+        PLL_CP: PLL charge pump current
     """
     #print "whichSignal = ", whichSignal
     oldCommand = readRegister(20)  # bias_readback is bits 1:0 of reg 20  
@@ -643,6 +601,7 @@ def readbackBias(whichSignal):
         print("readbackBias: bias readback signal unknown.")
         print("Valid inputs are: \"MASTER\" \"ADC\" \"CML_50U\" \
         \"REFBUFFER\" \"PLL_CP\" ")
+        return
 
     newCommand = (oldCommand & 0xFFFC) | command
     writeRegister(20,newCommand)
@@ -689,7 +648,7 @@ def setADCBias(whichBias,value):
         newCommand = (oldCommand & 0XFF0F) | (value << 4)
     else:
         print("setADCBias: bias destination unknown.  Bias not set.")
-        print("Valid inputs are: \"ADC\" \"COMP\" \"REFBUFFER\" ")
+        print("Valid inputs are: \"ADC\" \"COMP\"  ")
         return
 
     writeRegister(2,newCommand)
@@ -713,7 +672,7 @@ def kickstartBGR():
     """forces HIPSTER to restart the BGR.  This will only be
     needed if the BGR startup circuit fails.
     Since the SPI registers are not self clearing, this function
-    must both assert and remove the BGR reset
+    must both assert and remove the BGR reset.
     Care must also be taken not to change the static configuration.
     To do this, the function first reads back the Register setting 
     and only modifies the BGR kickstart bit.
@@ -755,6 +714,62 @@ def lockPLL():
     setDAC("BGR_AFE",1.23)
     setDAC("BGR_TX",1.23)
 
+def setOffsetMode(mode):
+    """ sets mode of offset DAC.  The following modes are valid:
+        0 -> use DAC values from SPI
+        1 -> use VTOP external pin voltage
+        2 -> use DAC values from SPI
+        3 -> self-calibrated
+    """
+
+    clearBitInRegister(1,2)
+    clearBitInRegister(1,3)
+    clearBitInRegister(1,4)
+    clearBitInRegister(1,5)
+    if (mode == 0):
+        pass
+    elif (mode == 1):
+        setBitInRegister(1,0)
+    elif (mode == 2):
+        setBitInRegister(1,1)
+    elif (mode == 3):
+        setBitInRegister(1,0)
+        setBitInRegister(1,1)
+    else:
+        print "Error:  Invalid offset mode.  Mode not updated."
+        print "Valid values are: 0, 1, 2, 3)"
+        
+def setPGA(gain,sc=2):
+    """ sets gain of linear preamp of PGA
+    """
+
+    clearBitInRegister(0,0)
+    clearBitInRegister(0,2)
+    clearBitInRegister(0,3)
+    clearBitInRegister(0,4)
+    clearBitInRegister(0,5)
+    if (gain == 1): # want to bypass preamp
+        setBitInRegister(0,0)
+    elif (gain == 2):
+        setBitInRegister(0,2)
+    elif (gain == 3):
+        setBitInRegister(0,3)
+    elif (gain == 4):
+        setBitInRegister(0,4)
+    elif (gain == 6):
+        setBitInRegister(0,5)
+    else:
+        print "Error:  Invalid preamp gain.  Gain not set."
+        print "Valid values are: 1, 2, 3, 4, 6)"
+
+    # now deal with SC gain
+    if (sc == 2):
+        setBitInRegister(0,1)
+    elif (sc == 1):
+        clearBitInRegister(0,1)
+    else:
+        print "Error: Invalid switched-cap PGA gain option.  Gain not set."
+        print "Valid values are: 1, 2"
 
 def observeVCTRL(disable=False):
     
@@ -773,7 +788,7 @@ def unforceVCTRL():
     clearBitInRegister(19,8)
 
 def softReset():
-    """ forces the JESD204B interface to reset.  This
+    """ forces the JESD204B interface and HIPSTER digital to reset.  This
     should be used when testing the CLRF.  This could also be useful
     if there is an issue with the PLL Lock Detect signal.
     Since the SPI registers are not self clearing, this function
@@ -793,8 +808,8 @@ def softReset():
 
 def enableDACs(verbose=False):
     """ the DAC8568 needs the internal reference started after reset
-        The internal reference is powered on with 0x08000001
-        The function enables internal references on both DACs
+    The internal reference is powered on with 0x08000001
+    The function enables internal references on both DACs
 	This function also puts DACs in software LDAC mode so the outputs
 	will be updated as soon as new data is received
     """
@@ -828,50 +843,62 @@ def selectDAC(whichDAC):
     
     DAC1:
     A: VREF_N -- HIPSTER ADC negative reference voltage
-    B: OFFSET_BOT -- Bottom voltage for Offset DAC
+    B: ADC_1_A -- ADC input voltage 1 (version A).  Drives J9 and J13.
     C: VREF_P -- HIPSTER ADC positive reference voltage
-    D: OFFSET_TOP -- Top voltage for Offset DAC
+    D: ADC_1_B -- ADC input voltage 1 (version B).  Drives J9 and J13.
     E: VTH_N -- HIPSTER ADC negative comparator threshold voltage
-    F: ADC_1 -- ADC input voltage 1.  Drives J9(1-12) and J13(1-12)
+    F: ADC_2_A -- ADC input voltage 2 (version A).  Drives J14 and J17.
     G: VTH_P -- HIPSTER ADC negative comparator threshold voltage
-    H: ADC_2 -- ADC input voltage 2.  Drives J14(1-12) and J17(1-12)
-
+    H: ADC_2_B -- ADC input voltage 2 (version B).  Drives J14 and J17.
     
     DAC2:
+    A: OFFSET_BOT_A -- Bottom voltage for Offset DAC, version A
     B: VCM -- HIPSTER ADC common-mode voltage
-    F: BGR_AFE -- bandgap reference voltage for front end
-    H: BGR_TX -- bandgap reference voltage for TX section
+    C: OFFSET_BOT_B -- Bottom voltage for Offset DAC, version B
     D: VCTRL -- Driven VCO control voltage for PLL eval
+    E: OFFSET_TOP_A -- Top voltage for Offset DAC, version A
+    F: BGR_AFE -- bandgap reference voltage for analog front end
+    G: OFFSET_TOP_B -- Top voltage for Offset DAC, version B
+    H: BGR_TX -- bandgap reference voltage for TX section
 
     """
 
     if (whichDAC == "VREF_N"):
         (DAC, channel) = 1, 0                
-    elif (whichDAC == "OFFSET_BOT"):
+    elif (whichDAC == "ADC_1_A"):
         (DAC, channel) = 1, 1
     elif (whichDAC == "VREF_P"):
         (DAC, channel) = 1, 2
-    elif (whichDAC == "OFFSET_TOP"):
+    elif (whichDAC == "ADC_1_B"):
         (DAC, channel) = 1, 3
     elif (whichDAC == "VTH_N"):
         (DAC, channel) = 1, 4
-    elif (whichDAC == "ADC_1"):
+    elif (whichDAC == "ADC_2_A"):
         (DAC, channel) = 1, 5
     elif (whichDAC == "VTH_P"):
         (DAC, channel) = 1, 6
-    elif (whichDAC == "ADC_2"):
+    elif (whichDAC == "ADC_2_B"):
         (DAC, channel) = 1, 7
+    elif (whichDAC == "OFFSET_BOT_A"):
+        (DAC, channel) = 2, 0
     elif (whichDAC == "VCM"):
-        (DAC, channel) = 1, 0
-    elif (whichDAC == "BGR_AFE"):
-        (DAC, channel) = 2, 5
-    elif (whichDAC == "BGR_TX"):
-        (DAC, channel) = 2, 7
+        (DAC, channel) = 2, 1
+    elif (whichDAC == "OFFSET_BOT_B"):
+        (DAC, channel) = 2, 2
     elif (whichDAC == "VCTRL"):
         (DAC, channel) = 2, 3
+    elif (whichDAC == "OFFSET_TOP_A"):
+        (DAC, channel) = 2, 4
+    elif (whichDAC == "BGR_AFE"):
+        (DAC, channel) = 2, 5
+    elif (whichDAC == "OFFSET_TOP_B"):
+        (DAC, channel) = 2, 6
+    elif (whichDAC == "BGR_TX"):
+        (DAC, channel) = 2, 7
     else:
-        print "setDAC: Error.  ",DAC," is invalid DAC ID."
-        print "usage: available DACs are: \"VREF_P\" \"VREF_N\" \"VTH_P\" \"VTH_N\" \"VCM\" \"OFFSET_TOP\" \"OFFSET_BOT\" \"BGR_AFE\" \"BGR_TX\" \"VCTRL\" \"ADC_1\" \"ADC_2\" "
+        print "setDAC: Error.  ",whichDAC," is invalid DAC ID."
+        print "No DAC set."
+        print "usage: available DACs are: \"VREF_P\" \"VREF_N\" \"VTH_P\" \"VTH_N\" \"VCM\" \"OFFSET_TOP_A\" \"OFFSET_TOP_B\" \"OFFSET_BOT_A\" \"OFFSET_BOT_B\" \"BGR_AFE\" \"BGR_TX\" \"VCTRL\" \"ADC_1_A\" \"ADC_1_B\" \"ADC_2_A\" \"ADC_2_B\""
         return
     return DAC, channel
 
@@ -896,8 +923,16 @@ def setDAC(whichDAC,desiredVoltage,verbose=False):
         3:0   : function bits (X)
     """
     if (verbose): print "desiredVoltage = ",desiredVoltage
+
     if not(0 < desiredVoltage < 3):
-        print "setDAC: error.  Voltage out of range (0 - 3 V)."   
+        print "setDAC: error.  Voltage out of range (0 - 3 V)."  
+        print "No DAC set."
+        return 
+
+    if (whichDAC == "VCTRL") and (desiredVoltage > 1.8):
+        print "setDAC: error.  Dangerous to set VCTRL above 1.8V."
+        print "No DAC set."
+        return
 
     DAC, channel = selectDAC(whichDAC)
 
@@ -947,7 +982,7 @@ def setDACsToDefaults():
     VCM = 1.75
     VTH_N = 1.5625
     VREF_N = 1.0
-    OFFSET_TOP = 1.0
+    OFFSET_TOP = 1.5
     OFFSET_BOT = 0.5
     """
     setDAC("BGR_AFE",1.23)
@@ -957,16 +992,45 @@ def setDACsToDefaults():
     setDAC("VCM",1.75)
     setDAC("VTH_N",1.5625)
     setDAC("VREF_N",1.0)
-    setDAC("OFFSET_TOP",1.0)
-    setDAC("OFFSET_BOT",0.5)
+    setDAC("OFFSET_TOP_A",1.5)
+    setDAC("OFFSET_TOP_B",1.5)
+    setDAC("OFFSET_BOT_A",0.5)
+    setDAC("OFFSET_BOT_B",0.5)
+
+def setOffset(whichOffset,value):
+    """ sets OFFSET_TOP & OFFSET_BOTTOM
+    """
+    if (whichOffset == "OFFSET_TOP"):
+        setDAC("OFFSET_TOP_A",value)
+        setDAC("OFFSET_TOP_B",value)
+    elif (whichOffset == "OFFSET_BOT"):
+        setDAC("OFFSET_BOT_A",value)
+        setDAC("OFFSET_BOT_B",value)
+    else:
+        print "setOffset: Error.  ",whichOffset," is invalid Offset ID."
+        print "No DAC set."
+        print "usage: available Offsets are: \"OFFSET_TOP\" \"OFFSET_BOT\" "    
+
+def setADC1(value):
+    """ sets both DACs that connect to ADC1
+    """
+    setDAC("ADC_1_A",value)
+    setDAC("ADC_1_B",value)
+
+def setADC2(value):
+    """ sets both DACs that connect to ADC2
+    """
+    setDAC("ADC_2_A",value)
+    setDAC("ADC_2_B",value)
 
 def configureSSO(whichADC,dataSelect=1):
     """ configures the SSO
         whichADC selects which ADC to read out (0 - 23)
         dataSelect = 0 --> raw decisions, dataSelect = 1 --> ADC data
     """
-    Command = 0x8000 | dataSelect << 6 | whichADC 
-    writeRegister(22,Command)
+    command = 0x80 | dataSelect << 6 | whichADC
+    #print "ConfigureSSO: command = ",hex(command) 
+    writeRegister(5,(0x80 | dataSelect <<6 | whichADC))
  
 def enableSSO():
     """ enables the SSO
@@ -985,93 +1049,6 @@ def powerDownHIPSTER():
     writeRegister(20,0xFFFF)
     writeRegister(22,0xFFFF)
 
-def make_bin_from_int(a):
-    '''returns a 16-bit string calculated from integer argument'''
-    assert isinstance(a,int),'Only integers can be converted'
-    assert a >= 0,'Input value must be positive'
-    assert a < 2**16,'Only 16-bit integers are allowed'
-    s = []
-    for i in range(0, 16):
-        s.append((a >> (15-i)) % 2)
- 
-    return ''.join(str(e) for e in s)       
-
-def test_make_bin_from_int():
-    """test max, min, and a random value in between"""
-    assert make_bin_from_int(0) == '0000000000000000'
-    assert make_bin_from_int(65535) == '1111111111111111'
-    assert make_bin_from_int(3) == '0000000000000011'
-    print "max_bin_from_test() passes all tests"
-    return
-
-def buildConfigMap(reg,cmd):
-    reg.append(cmd['pga_bypass_preamp'] | (cmd['pga_hg'] << 1) | (cmd['pga_gain_sel'] << 2))
-    reg.append(cmd['offset_mode'] | (cmd['offset_dac_default'] << 2) | (cmd['offset_channel'] << 8))
-    reg.append(cmd['adc_bias_adj'] | cmd['adc_comp_bias_adj'] << 4 | cmd['adc_extern_reference'] << 8 | cmd['adc_output_format'] << 9)
-    reg.append(cmd['cal_cycles'])
-    reg.append(cmd['calbits'])
-    reg.append(cmd['sso_adc_select'] | cmd['sso_data_select'] << 6 | cmd['sso_enable'] << 7)
-    reg.append(cmd['tx_bypass_eq'])
-    reg.append(cmd['eq_precursor_tap_sign'] | cmd['eq_cursor_tap_sign'] << 1 | cmd['eq_postcursor_tap_sign'] << 2)
-    reg.append(cmd['bypass_tap_ctrl0'] | cmd['bypass_tap_ctrl1'] << 4 | cmd['bypass_tap_ctrl2'] << 8 | cmd['bypass_tap_ctrl3'] << 12)    
-    reg.append(cmd['bypass_tap_ctrl4'] | cmd['bypass_tap_ctrl5'] << 4 | (119 << 8) )  # unused additional 77 in SPI map
-    reg.append(cmd['precursor_tap_ctrl0'] | cmd['precursor_tap_ctrl1'] << 4 | cmd['precursor_tap_ctrl2'] << 8 | cmd['precursor_tap_ctrl3'] << 12)    
-    reg.append(cmd['precursor_tap_ctrl4'] | cmd['precursor_tap_ctrl5'] << 4 )
-    reg.append(cmd['cursor_tap_ctrl0'] | cmd['cursor_tap_ctrl1'] << 4 | cmd['cursor_tap_ctrl2'] << 8 | cmd['cursor_tap_ctrl3'] << 12)    
-    reg.append(cmd['cursor_tap_ctrl4'] | cmd['cursor_tap_ctrl5'] << 4 )
-    reg.append(cmd['postcursor_tap_ctrl0'] | cmd['postcursor_tap_ctrl1'] << 4 | cmd['postcursor_tap_ctrl2'] << 8 | cmd['postcursor_tap_ctrl3'] << 12)    
-    reg.append(cmd['postcursor_tap_ctrl4'] | cmd['postcursor_tap_ctrl5'] << 4 )
-    reg.append(cmd['c1_select'])
-    reg.append(cmd['c2_select'])
-    reg.append(cmd['r1_select'] | cmd['pll_cp_bias_adj'] << 4)
-    reg.append(cmd['clk_mon_sel'] | cmd['bypass_vco'] << 1 | cmd['observe_vctrl'] << 2 | cmd['observe_pfd'] << 4 | cmd['force_vctrl'] << 8 | cmd['bypass_retimer'] << 9 | cmd['ldo_output_select'] << 12)
-    reg.append(cmd['bias_readback'] | cmd['bgr_kickstart'] << 2 | cmd['master_bias_adj'] << 4 | cmd['cml_bias_adj'] << 8 | cmd['refbuffer_bias_adj'] << 12)
-    reg.append(cmd['testbuffer_ctrl'])
-    reg.append(cmd['pd_lvds_tx'] | cmd['pd_testbuffer'] << 1 | cmd['pd_precursor'] << 2 | cmd['pd_cursor'] << 3 | cmd['pd_postcursor'] << 4 | cmd['pd_ldo'] << 5 | cmd['pd_bgr'] << 6 | cmd['pd_tx0'] << 8 | cmd['pd_tx1'] << 9 | cmd['pd_tx2'] << 10 | cmd['pd_tx3'] << 11 | cmd['pd_tx4'] << 12 | cmd['pd_tx5'] << 13 | cmd['pd_vcobuffer'] << 14 | cmd['pd_readbackclk_mon'] << 15)
-    reg.append(cmd['pd_analog_channel0'] | cmd['pd_analog_channel1'] << 1 | cmd['pd_analog_channel2'] << 2 | cmd['pd_analog_channel3'] << 3 | cmd['pd_analog_channel4'] << 4 | cmd['pd_analog_channel5'] << 5 | cmd['pd_analog_channel6'] << 6 | cmd['pd_analog_channel7'] << 7 | cmd['pd_analog_channel8'] << 8 | cmd['pd_analog_channel9'] << 9 | cmd['pd_analog_channel10'] << 10 | cmd['pd_analog_channel11'] << 11 | cmd['pd_analog_channel12'] << 12 | cmd['pd_analog_channel13'] << 13 | cmd['pd_analog_channel14'] << 14 | cmd['pd_analog_channel15'] << 15)
-    reg.append(cmd['pd_analog_channel16'] | cmd['pd_analog_channel17'] << 1 | cmd['pd_analog_channel18'] << 2 | cmd['pd_analog_channel19'] << 3 | cmd['pd_analog_channel20'] << 4 | cmd['pd_analog_channel21'] << 5 | cmd['pd_analog_channel22'] << 6 | cmd['pd_analog_channel23'] << 7)
-    reg.append(0)  # unused SPI command (still need to account for it)
-    reg.append(cmd['jesd_numlanes'] | cmd['jesd_ds_en'] << 2 | cmd['jesd_cr_en'] << 3 | cmd['jesd_bid'] << 4 | cmd['jesd_did'] << 8)
-    reg.append(cmd['jesd_testmode'] | cmd['jesd_datasel'] << 4 | cmd['jesd_reset'] << 6)
-    reg.append(cmd['jesd_testval0'])
-    reg.append(cmd['jesd_testval1'])
-    reg.append(cmd['jesd_testval2'])
-    reg.append(cmd['jesd_testval3'])
-    reg.append(cmd['jesd_testval4'])
-    reg.append(cmd['jesd_testval5'])
-    reg.append(cmd['jesd_testval6'])
-    reg.append(cmd['jesd_testval7'])
-    reg.append(cmd['jesd_testval8'])
-    reg.append(cmd['jesd_testval9'])
-    reg.append(cmd['jesd_testval10'])
-    reg.append(cmd['jesd_testval11'])
-    reg.append(cmd['jesd_testval12'])
-    reg.append(cmd['jesd_testval13'])
-    reg.append(cmd['jesd_testval14'])
-    reg.append(cmd['jesd_testval15'])
-    reg.append(cmd['jesd_testval16'])
-    reg.append(cmd['jesd_testval17'])
-    reg.append(cmd['jesd_testval18'])
-    reg.append(cmd['jesd_testval19'])
-    reg.append(cmd['jesd_testval20'])
-    reg.append(cmd['jesd_testval21'])
-    reg.append(cmd['jesd_testval22'])
-    reg.append(cmd['jesd_testval23'])    
-    return reg
-
-def outputCommand(mode,reg,command):
-    """sends formatted command to std out"""
-    
-    if (mode == 1):
-        outstring = "spi_master(WRITE,%d,16'b%s)" %(reg,make_bin_from_int(command))
-    else:
-        outstring = "REG %d, command = %d" %(reg,command)
-        
-    print outstring      
-    
-def printMessage(message):
-    print message
-    
 def dumpConfigMap():
     """ prints out the configMap to screen 
     configMap is the host's copy of the map inside HIPSTER
@@ -1090,9 +1067,9 @@ def dumpSpiMap(fileName="SpiMapDump.txt",verbose=False):
     for reg in range(0,len(spiMap)):
         data = readRegister(reg)
         spiMap[reg] = data
-        print >> file,reg," ",format(data,'#04x') 
+        print >> file,reg," ",hex(data) 
         if (verbose):
-            print "dumpSPIMap: Reg = ",reg," Data = ",format(data,'#04x')
+            print "dumpSPIMap: Reg = ",reg," Data = ",hex(data)
     file.close
     return spiMap
 
@@ -1108,43 +1085,4 @@ def restoreSpiMapToDefault():
         writeRegister(reg,defaultMap[reg])
     
           
-def writeSpiMap(inputFile,verbose=False):
-    """ Loads in ConfigMap from external file and returns SPI regmap list
-        configMap is the interal map of the HIPSTER register map.
-        spiMap is the actual SPI regmap inside HIPSTER
-    """
-
-    global configMap
-    cmd = dict(CMD_DEFAULTS)
-    #read in config file
-    
-    try:
-        f = open(inputFile)
-    except IOError:
-        print "Input file %s does not exist" %inputFile
-        configMap = list(REG_DEFAULTS)
-        return
-        
-    for line in iter(f):
-        if not line.startswith("#"):
-            words = line.split()
-            cmd[words[0]] = int(words[1])    
-            
-    f.close()    
-
-    configMap = list(REG_DEFAULTS)
-    
-#    print configMap
-    commands = []
-
-    buildConfigMap(commands,cmd)
-    
-    # update configMap with commands from config file
-
-    for reg in range(0, len(commands)):
-        configMap[reg] = commands[reg]
-        writeRegister(reg,configMap[reg])
-    if (verbose):
-        print "configMap =",configMap
-
 
