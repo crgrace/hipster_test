@@ -48,7 +48,7 @@ def putBit(bit):
 
     pause()
     GPIO.output(SCLK, 0)
-    GPIO.output(MOSI, bit)
+    GPIO.output(MOSI, int(bit))
     receivedBit = GPIO.input(MISO)
     receivedWord = receivedWord << 1 | receivedBit
     pause()
