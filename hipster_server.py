@@ -29,9 +29,9 @@ Bytes 4 and 5 are the 16-bit data word
 import sys, socket
 import hipster_spi_ops
 import time
-import spidev   # for accessing Raspberry Pi SPI kernal module
+import spidev  # for accessing Raspberry Pi SPI kernal module
 import smbus   # for accessing Raspberry Pi SMBUS (I2C) kernal module
-
+import serial  # for RS-232 readout
 
 # set up Raspberry Pi GPIOs for HIPSTER SPI
 hipster_spi_ops.setupGPIO()
@@ -71,6 +71,7 @@ clrf = 384*[0]  # initialize with all zeros
 #def Server(serverName="localhost",port=50000):
 #def Server(serverName="131.243.115.189",port=50000):
 def Server(serverName="",port=50000,verbose=False):
+    verbose = True
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Bind the socket to the address given to the function
     serverAddress = (serverName,port)  
@@ -154,7 +155,10 @@ def serverOp(dataString,verbose=False):
     # execute desired action
 
     if (deviceID == 0):    # HIPSTER
-        dataHIPSTER = str(regOpHIPSTER(wrb,register,data))
+        if (register == 1000):
+            dataHIPSTER = str(regOpSSO())
+        else:
+            dataHIPSTER = str(regOpHIPSTER(wrb,register,data))
     elif (deviceID == 1):  # DAC1
         # DAC uses 32 bit commands.  Top 16 bits in register, LSBs in data
         regOpDAC(0,(register << 16 | data))   # 0 --> DAC1, 1 --> DAC2
@@ -170,8 +174,6 @@ def serverOp(dataString,verbose=False):
         dataStringInt = dataStringInt << 16
         dataSi5338 = str(dataStringInt | response)
         print "dataSi5338 string = ",dataSi5338
-    elif (deviceID == 4):
-        dataSSO = regOpSSO()
     else:
         print "serverOP error: device ID out of range."
         print "deviceID :  device"
@@ -180,24 +182,21 @@ def serverOp(dataString,verbose=False):
         print "1    | DAC 1"
         print "2    | DAC 2"
         print "3    | Si5338 clock generator"
-        print "4    | RS-232 Serial Port (for SSO)"
 
     # return initial message if a write, otherwise return from HIPSTER
     if (wrb):
-        if (verbose):
-            print "serverOp: returning dataString: ",dataString
         return dataString
     elif ((wrb == 0) and deviceID == 0):
         if (verbose):
-            print "serverOp: returning dataHIPSTER: ",dataHIPSTER
+            if (register == 1000):
+                print "serverOp: return dataSSO: ",dataHIPSTER
+            else:
+                print "serverOp: returning dataHIPSTER: ",dataHIPSTER
         return dataHIPSTER     
     elif ((wrb == 0) and deviceID == 3):
         print "serverOp: returning data from Si5338 clock generator"
         print "data returned = ",dataSi5338 
         return dataSi5338
-    elif ((wrb == 0) and (deviceID == 4):
-        print "servierOp: returning data from SSO via RS232 serial port"
-        return dataSSO
     else:
         print "serverOp: ERROR: read request on non-HIPSTER device"
 
@@ -264,6 +263,7 @@ def regOpDAC(dacID,data,verbose=True):
 # execute spi transaction (spi.xfer2 keeps 
 # CS asserted (low) between bytes)    
     response = spi.xfer2(bytesToSend)
+    spi.close()
 #    response = spi.xfer2(8)
 #    response = 0
     if (verbose):
@@ -330,17 +330,20 @@ def regOp5338(wrb,register,data,verbose=False):
 
 def regOpSSO(port="/dev/ttyUSB1",baud=3000000):
     ser = serial.Serial(port,baud,timeout=0)
-    ser = flushInput()
+    ser.flushInput()
     preReads = 2
     for i in range(preReads):
         _ = ser.readline()
     validData = False
-    while !(validData):
+    while (validData==False):
         rawData = ser.readline()
         if (len(rawData) == 9): # got correctly formatted data
             receivedData = int(rawData[0:3],16)
+            #receivedData = int(rawData[0:9],16)
+            #print "receivedData = ",receivedData  
             validData = True
-    return receivdedData 
+            ser.close()
+    return str(0x180000000 | receivedData)
 
 #### this function is for HIPSTER emulation only
 #### It is not used to test HIPSTER hardware
