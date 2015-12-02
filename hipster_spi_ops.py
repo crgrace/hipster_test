@@ -86,7 +86,7 @@ def spiMaster(spiWRB,spiAddr,spiData):
 
     # write SPI data
     for i in range(0,wordLength):
-        putBit( (spiData >> (wordLength - 1 - i) & 1 ))
+        putBit((spiData >> (wordLength - 1 - i) & 1))
 
 
     # complete readout of SPI register
