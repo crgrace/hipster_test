@@ -792,7 +792,7 @@ def setPLL(cpCurrent, c1, c2, r1):
     assert (cpCurrent >= 0 and cpCurrent < 16), "cp current out of range"
     assert (c1 >= 0 and c1 < 256), "C1 out of range"
     assert (c2 >= 0 and c2 < 256), "C2 out of range"
-    assert (r1 >= 0 and r < 8), "R1 out of range"
+    assert (r1 >= 0 and r1 < 8), "R1 out of range"
 
     setBiasPLL(cpCurrent)
     writeRegister(16,c1)
