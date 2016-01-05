@@ -78,6 +78,16 @@ def dumpRamp(start,end,step,numSamples):
         input += step
     return  
     
+def getNoise(numSamples=1000):
+    """ acquires data and calculates idle channel noise
+    """
+
+    genNoiseHisto(1.0,numSamples)
+    codes = getList()
+    #first 20 codes are garbage as SSO is flushed
+    codes = codes[20:numSamples]
+    print "rms noise is ",findNoise(codes)," LSBs"
+
 def genNoiseHisto(inputValue,numSamples):
     """ runs many samples of DC input to measure noise
     """
@@ -160,18 +170,19 @@ def calcLinearity(histo):
     INL = findINL(histo)
     return DNL,INL   
 
-def findNoise(histo):
+def findNoise(codes):
     """ calculate the idle channel noise of the ADC.  
         Input assumed to be a constant (grounded input)
     """
 
-    return math.sqrt(variance(histo))
+    return math.sqrt(variance(codes))
 
 def getADCDataJESD():
     """ gets ADC data from the backend data and builds histograms 
         that can later be used to measure linearity and noise
     """
     pass
+
 
 def findDNL(histo,debug=False):
     """ calculates DNL
@@ -212,7 +223,7 @@ def findDNL(histo,debug=False):
         print "bottomCode = ",bottomCode
         
 
-    return DNL
+    ret
 
 def findINL(DNL):
     """ calculates INL from the DNL

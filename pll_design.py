@@ -15,12 +15,12 @@ import math
 
 #f_ref = 75e6  # input reference frequency in Hz
 #f_ref = 50e6
-f_ref = 25e6
+f_ref = 23.66e6
 #f_ref = 37.5e6
 #f_ref = 23.667e6
 #f_out = 2.25e9 # PLL output frequency in Hz
 #f_out = 1.125e9 
-f_out = 750e6 
+f_out = 710e6 
 #f_out = 710e6
 k_vco = 2e9 # VCO gain (measured) in Hz/V
 f_loop = 2e6  # desired PLL Loop bandwidth in Hz

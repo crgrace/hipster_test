@@ -6,6 +6,8 @@ Created on Wed Aug 5 18:26:37 2015
 """
 import sys, os, socket, time
 
+SERVERNAME = "hipster-pi2.dhcp.lbl.gov"
+
 NUMREGS = 54
 MBR = 54  #mailbox register
 CR = 53 #command register
@@ -156,7 +158,9 @@ def getSSO(numWords,verbose=False):
             print receivedData[i]
     return receivedData
 
-def serverOp(message,serverName="hipster-pi2.dhcp.lbl.gov",port=50000,verbose=False):
+def serverOp(message,serverName=SERVERNAME,port=50000,verbose=False):
+#def serverOp(message,serverName="hipster-pi4.dhcp.lbl.gov",port=50000,verbose=False):
+#def serverOp(message,serverName="hipster-pi2.dhcp.lbl.gov",port=50000,verbose=False):
 #def serverOp(message,serverName="131.243.115.189",port=50000,verbose=False):
 #def serverOp(message,serverName="localhost",port=50000,verbose=False):
     """The serverOp command length is five bytes.  First byte is device ID and  
@@ -523,9 +527,18 @@ def powerUpADC(whichADC):
             # ADCs 16 through 23 in SPI register 24
             clearBitInRegister(24,whichADC-16)
 
+def powerUpADCs(start,stop):
+    """ powers up a range of ADCs from start to stop
+        e.g.: powerUPADCs(0,11) would power up ADC0 through ADC11
+    """
+
+    for whichADC in range(start,stop+1):
+        powerUpADC(whichADC)
+
 def powerUpAllADCs():
     """ powers up all ADCs
     """
+
     for whichADC in range(0,24):
         powerUpADC(whichADC)
 
@@ -628,7 +641,60 @@ def setBias(whichBias,value):
         return
 
     writeRegister(20,newCommand)
-        
+
+def setEqualizerTap(whichTap,whichTX,value):
+    """ configures output driver current
+        Current is 16*(value)*50uA (nominal value is 8)
+    """
+
+    if (whichTap == "BYPASS"):
+        lowReg = 8
+        highReg = 9
+    elif (whichTap == "PRECURSOR"):
+        lowReg = 10
+        highReg = 11
+    elif (whichTap == "CURSOR"):
+        lowReg = 12
+        highReg = 13
+    elif (whichTap == "POSTCURSOR"):
+        lowReg = 14
+        highReg = 15
+   
+    else:
+        print("setEqualizerTap: Tap unknown.  Drive not set.")
+        print("Valid inputs are: \"BYPASS\" \"PRECURSOR\" \"CURSOR\" \"POSTCURSOR\" ")
+        return
+
+    
+    if (value > 15) or (value < 0):
+        print "setEqualizerTap: Error. Input value must be between 0 and 16."
+        print "Bias not set"
+        return
+   
+    if (whichTX < 0) or (whichTX > 5):
+        print "setEqualizerTap: Error.  TX must be 0 - 5"
+        print "Bias not Set."
+        return
+    
+    if (whichTX < 4):  
+        oldCommand = readRegister(lowReg)      
+        if (whichTX == 0):
+            newCommand = (oldCommand & 0xFFF0) | value
+        if (whichTX == 1):
+            newCommand = (oldCommand & 0xFF0F) | (value << 4)
+        if (whichTX == 2):
+            newCommand = (oldCommand & 0xF0FF) | (value << 8)
+        if (whichTX == 3):
+            newCommand = (oldCommand & 0x0FFF) | (value << 12)
+        writeRegister(lowReg,newCommand)
+    else:
+        oldCommand = readRegister(highReg)      
+        if (whichTX == 4):
+            newCommand = (oldCommand & 0xFFF0) | value
+        if (whichTX == 5):
+            newCommand = (oldCommand & 0xFF0F) | (value << 4)
+        writeRegister(highReg,newCommand)
+
 def setADCBias(whichBias,value):
     """ configures the ADC bias current
         ADC bias current is master_bias current * ADC setting 
@@ -660,7 +726,7 @@ def setBiasPLL(value):
     """
 
     if (value > 15):
-        print "setPLLBias: Error. Input value must be less than 16)"
+        print "setBiasPLL: Error. Input value must be less than 16)"
         print "Bias not set"
         return
 
@@ -694,8 +760,9 @@ def kickstartPLL(vctrl=0.8):
     clearBitInRegister(19,8)
 
 def lockPLL():
-    """ performs operations to lock HIPSTER PLL.  This function does
-    the following:
+    """ performs operations to lock HIPSTER PLL.  
+    This can only be used on boards that have been configured for external BGR
+    This function does the following:
     1. disables internal bandgap
     2. enables external DAC and sets it to voltage that constrains the 
         VCO to slower speeds than the feedback divider
@@ -713,6 +780,24 @@ def lockPLL():
         setDAC("BGR_TX",bgrValue)
     setDAC("BGR_AFE",1.23)
     setDAC("BGR_TX",1.23)
+
+def setPLL(cpCurrent, c1, c2, r1):
+    """ sets up PLL.  The four arguments are:
+    1. Charge Pump current (from 0 to 15)
+    2. C1 setting (8-bit word)
+    3. C2 setting (8-bit word)
+    4. R1 setting (three bits)
+    """
+
+    assert (cpCurrent >= 0 and cpCurrent < 16), "cp current out of range"
+    assert (c1 >= 0 and c1 < 256), "C1 out of range"
+    assert (c2 >= 0 and c2 < 256), "C2 out of range"
+    assert (r1 >= 0 and r < 8), "R1 out of range"
+
+    setBiasPLL(cpCurrent)
+    writeRegister(16,c1)
+    writeRegister(17,c2)
+    writeRegister(18,(readRegister(18) & 0xFFF8)| r1)
 
 def setOffsetMode(mode):
     """ sets mode of offset DAC.  The following modes are valid:
@@ -996,6 +1081,29 @@ def setDACsToDefaults():
     setDAC("OFFSET_TOP_B",1.5)
     setDAC("OFFSET_BOT_A",0.5)
     setDAC("OFFSET_BOT_B",0.5)
+
+def setRefs(vcm,vid):
+    """ sets ADC reference voltages.  Differential reference vid is symmetric
+    about vcm
+    """
+
+    vrefp = vcm + vid/2.0
+    vrefn = vcm - vid/2.0
+    vthp = vcm + vid/8.0
+    vthn = vcm - vid/8.0
+    
+    print "Setting References:"
+    print "VREF_P : ",vrefp
+    print "VREF_N : ",vrefn
+    print "VTH_P : ",vthp
+    print "VTH_N : ",vthn
+    print "VCM : ",vcm
+
+    setDAC("VREF_P",vrefp)
+    setDAC("VREF_N",vrefn)
+    setDAC("VTH_P",vthp)
+    setDAC("VTH_N",vthn)
+    setDAC("VCM",vcm)
 
 def setOffset(whichOffset,value):
     """ sets OFFSET_TOP & OFFSET_BOTTOM

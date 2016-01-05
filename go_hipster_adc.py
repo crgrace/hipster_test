@@ -30,7 +30,7 @@ h.setBias("CML",5)
 
 # configure SI5338 clock chip
 if (verbose): print "Configuring Si5338 Clock Chip"
-c.configureSi5338("RegisterMap.txt")
+c.configureSi5338("RegisterMap_ADC.txt")
 
 # configure and lock PLL
 
@@ -61,10 +61,14 @@ h.writeRegister(4,0x0001)
 #initialize Correction Logic
 h.restoreCorrectionLogicToDefault()
 
+#use external ADC references
+h.setBitInRegister(2,8)
+
 h.enableDACs()
 h.setDACsToDefaults()
-h.setADC1(0.5)
+h.setADC1(1.0)
 h.setOffsetMode(1)
+h.setOffset("OFFSET_TOP",1.0)
 h.setPGA(1)
 
 if (verbose): print "Done"
