@@ -77,7 +77,7 @@ def spiMaster(spiWRB,spiAddr,spiData):
     pause()
     # enable SPI slave
     GPIO.output(CSB, 0)
-    if (verbose) print "In spiMaster" 
+    if (verbose): print "In spiMaster" 
     #first send write/read command
     putBit(spiWRB)
     
@@ -100,7 +100,7 @@ def spiMaster(spiWRB,spiAddr,spiData):
     GPIO.output(CSB, 1)
     pause()
     GPIO.output(SCLK, 1) 
-    if (verbose) print "finished spiMaster.  Returning value = ", receivedWord    
+    if (verbose): print "finished spiMaster.  Returning value = ", receivedWord    
     return receivedWord
 
 

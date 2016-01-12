@@ -239,12 +239,9 @@ def regOpDAC(dacID,data,verbose=True):
     # strip off wrb bit from data and set to 0 (DAC8568 prefix bit)
     data = data & 0x7FFFFFFF
     if (dacID == 0): # send to DAC1
-#        pass
         spi = spidev.SpiDev()    # create spi object
         spi.open(0,0)  # open spi port 0, device (CS) 0
-        # call to SPI driver goes here
     elif (dacID == 1): # send to DAC2
-#        pass
         spi = spidev.SpiDev()    # create spi object
         spi.open(0,1)  # open spi port 0, device (CS) 1
     
