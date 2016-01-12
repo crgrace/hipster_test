@@ -1,12 +1,17 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Dec 16 17:31:08 2014
-
-@author: CRGrace
-"""
-
-
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# HOW TO USE
+#
+# 1. set f_ref to the reference input frequency
+# 2. set f_out to the VCO output frequency
+# 3. set k_vco to the measured VCO gain (4 GHz/V in HIPSTER)
+# 4. set f_loop to the desired PLL Loop bandwidth (must be < ~15*f_ref)
+# 5. set master-bias_adj and pll_cp_bias_adj to desired values
+# 6. set pm to desired phase margin (in degrees)
+# 7. run script.  If PLL is not realizable, adjust inputs and run again
+# 8. once you have a realizable PLL, load values for C1, C2, & R1 into HIPSTER
+
 import math
 
 ###
@@ -14,18 +19,18 @@ import math
 ###
 
 #f_ref = 75e6  # input reference frequency in Hz
-#f_ref = 50e6
-f_ref = 23.66e6
+f_ref = 50e6
+#f_ref = 23.66e6
 #f_ref = 37.5e6
 #f_ref = 23.667e6
 #f_out = 2.25e9 # PLL output frequency in Hz
-#f_out = 1.125e9 
-f_out = 710e6 
+f_out = 1.5e9 
+#f_out = 710e6 
 #f_out = 710e6
-k_vco = 2e9 # VCO gain (measured) in Hz/V
+k_vco = 4e9 # VCO gain (measured) in Hz/V
 f_loop = 2e6  # desired PLL Loop bandwidth in Hz
 master_bias_adj = 7 # 4-bit decimal number indicating masterbias current
-pll_cp_bias_adj = 12 # 4-bit decimal number indicating charge-pump current
+pll_cp_bias_adj = 14 # 4-bit decimal number indicating charge-pump current
 pm = 80 # desired loop phase margin in degrees (higher PM leads to lower jitter)
 
 ###############

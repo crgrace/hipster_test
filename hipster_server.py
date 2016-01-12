@@ -97,9 +97,12 @@ def Server(serverName="",port=50000,verbose=False):
                     connection.sendall(receivedData)
                 else:
                     break
+        except:
+            hipster_spi_ops.GPIO.cleanup()
+            print "cleaning up GPIOs." 
         finally:
             connection.close()
-
+    
 def Client(message="10000",serverName="localhost",port=50000):
     """ this is a small client used for testing the server
     """
@@ -147,7 +150,6 @@ def serverOp(dataString,verbose=False):
         print "serverOp: data = ", data
         print "serverOp: wrb = ", wrb
 
-  #  register = hipster_spi.clearBit(register,7)
     register = register & 0xBFFF  # clear bit 7
     if (verbose):
         print "serverOp: new register = ", register
@@ -162,10 +164,8 @@ def serverOp(dataString,verbose=False):
     elif (deviceID == 1):  # DAC1
         # DAC uses 32 bit commands.  Top 16 bits in register, LSBs in data
         regOpDAC(0,(register << 16 | data))   # 0 --> DAC1, 1 --> DAC2
-        #regOpDAC(0,data)   # 0 --> DAC1, 1 --> DAC2
     elif (deviceID == 2):  # DAC2
         regOpDAC(1,(register << 16 | data))
-        #regOpDAC(1, data)
     elif (deviceID == 3):
         print "si5338:"
         response = regOp5338(wrb,register,data) 
@@ -221,7 +221,7 @@ def regOpHIPSTER(wrb,register,data,verbose=True):
 
     return str(dataHIPSTER)
     
-# read or write data from the fake HIPSTER
+# read or write data from emulated HIPSTER
 #    if (wrb): # write op requested
 #        spiMap[register] = data
 #        if (register == CR):
@@ -286,7 +286,7 @@ def regOp5338(wrb,register,data,verbose=False):
     # in by looking at reg 255 of the register map.  In the caption they say
     # PAGEBIT must be set but there is no PAGEBIT.  It is PAGE_SEL.  
     # I suppose keeping this as Si5338 lore passed down by wizards is good
-    # for job security
+    # for job security.
     
     # call to I2C driver goes here
     deviceAddress = 0x70  # fixed I2C address for si5338

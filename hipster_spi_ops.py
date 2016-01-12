@@ -14,7 +14,7 @@ import RPi.GPIO as GPIO
 import time
 
 # global variables
-SLEEPTIME = 0.01    # pause duration in seconds
+SLEEPTIME = 0.0001    # pause duration in seconds
 RST = 17
 CSB = 18
 SCLK = 22
@@ -69,14 +69,15 @@ def spiInit():
     GPIO.output(MOSI,0)
 
 def spiMaster(spiWRB,spiAddr,spiData):
-
+    
+    verbose = False
     global SCLK,CSB, receivedWord
     wordLength = 16
     receivedWord = 0
     pause()
     # enable SPI slave
     GPIO.output(CSB, 0)
-    
+    if (verbose) print "In spiMaster" 
     #first send write/read command
     putBit(spiWRB)
     
@@ -86,7 +87,7 @@ def spiMaster(spiWRB,spiAddr,spiData):
 
     # write SPI data
     for i in range(0,wordLength):
-        putBit((spiData >> (wordLength - 1 - i) & 1))
+        putBit( (spiData >> (wordLength - 1 - i) & 1 ))
 
 
     # complete readout of SPI register
@@ -99,7 +100,7 @@ def spiMaster(spiWRB,spiAddr,spiData):
     GPIO.output(CSB, 1)
     pause()
     GPIO.output(SCLK, 1) 
-    
+    if (verbose) print "finished spiMaster.  Returning value = ", receivedWord    
     return receivedWord
 
 
