@@ -68,8 +68,6 @@ clrf = 384*[0]  # initialize with all zeros
 #    1 bit for the weight
 ####
 
-#def Server(serverName="localhost",port=50000):
-#def Server(serverName="131.243.115.189",port=50000):
 def Server(serverName="",port=50000,verbose=False):
     verbose = True
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -208,7 +206,6 @@ def regOpHIPSTER(wrb,register,data,verbose=True):
 
     spiCommand = (wrb << 15 | register) & 0xFFFF
     message = str((int(spiCommand << 16) + int(data & 0xFFFF)))
-    # call to SPI driver goes here
     dataHIPSTER = (0x40000000 | hipster_spi_ops.spiMaster(wrb,register,data))
 
 
@@ -339,7 +336,6 @@ def regOpSSO(port="/dev/ttyUSB1",baud=3000000):
         rawData = ser.readline()
         if (len(rawData) == 9): # got correctly formatted data
             receivedData = int(rawData[0:3],16)
-            #receivedData = int(rawData[0:9],16)
             #print "receivedData = ",receivedData  
             validData = True
             ser.close()

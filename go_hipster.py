@@ -23,7 +23,7 @@ if (verbose): print "Configuring Si5338 Clock Chip"
 c.configureSi5338("RegisterMap.txt")
 
 # configure and lock PLL
-
+# (not needed for external clock)
 #h.setBiasPLL(12)  # CP current
 #h.writeRegister(16,0x00b6)  # C1
 #h.writeRegister(17,0x0001)  # C2
@@ -35,13 +35,18 @@ c.configureSi5338("RegisterMap.txt")
 #h.lockPLL()
 # external clock
 h.setBitInRegister(19,1)
-# power up transmitter #1
-h.clearBitInRegister(22,9)
+# power up all transmitter
+h.powerUpAllTXs()
 
-# take JESD out of reset 
-#h.setBitInRegister(27,7)
 
 # set JESD testmode to Send /K/
 h.setBitInRegister(27,0)
+
+# take HIPSTER out of reset
+h.setBitInRegister(27,7)
+# disable /K/ test mode
+h.clearBitInRegister(27,0)
+# enable ramp test patten
+h.setBitInRegister(27,5)
 
 if (verbose): print "Done"
