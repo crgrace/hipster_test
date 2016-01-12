@@ -58,17 +58,19 @@ spiMap = list(REG_DEFAULTS + [0,0,0])
 
 
 def setBit(word,bit):
-    """ sets a single bit in word.  Returns the word with that bit set.
-        bit[0] is the LSB, so:
-        setBit(word,0) would set the LSB (bit[0]) to one
+    """ 
+    Sets a single bit in word.  Returns the word with that bit set.
+    bit[0] is the LSB, so:
+    setBit(word,0) would set the LSB (bit[0]) to one
     """
     mask = (1 << bit)
     return(word | mask)
 
 def clearBit(word,bit):
-    """ clears a single bit in word.  Returns the word with that bit cleared.
-        bit[0] is the LSB, so:
-        clearBit(word,0) would clear the LSB (bit[0]) to zero
+    """ 
+    Clears a single bit in word.  Returns the word with that bit cleared.
+    bit[0] is the LSB, so:
+    clearBit(word,0) would clear the LSB (bit[0]) to zero
     """
     mask = ~(1 << bit)
     return(word & mask)
@@ -88,7 +90,8 @@ def clearBitInRegister(register,bit):
     writeRegister(register,newCommand)
 
 def writeRegister(register,data,deviceID=0):
-    """ writes 16-bit data to SPI register
+    """ 
+    Writes 16-bit data to SPI register
     The serverOp command length is five bytes.  First byte is device ID and  
     indicates if it is a read or write and what device is requested.
     Bytes 2 and 3 are the 16-bit register address
@@ -114,7 +117,8 @@ def writeRegister(register,data,deviceID=0):
     serverOp(message)
 
 def readRegister(register,data=5555,deviceID=0):
-    """ reads 16-bit data from SPI register
+    """ 
+    Reads 16-bit data from SPI register
     The serverOp command length is five bytes.  First byte is device ID and  
     indicates if it is a read or write and what device is requested.
     Bytes 2 and 3 are the 16-bit register address
@@ -147,8 +151,9 @@ def dumpRegister(register,deviceID=0):
     print "dumpRegister: ",hex(readRegister(register))
 
 def getSSO(numWords,verbose=False):
-    """ gets data from the HIPSTER Slow Serial Output (SSO).  
-        SSO is memory mapped to "magic" register 1000
+    """ 
+    Gets data from the HIPSTER Slow Serial Output (SSO).  
+    SSO is memory mapped to "magic" register 1000
     """
 
     receivedData = numWords*[0]
@@ -159,11 +164,9 @@ def getSSO(numWords,verbose=False):
     return receivedData
 
 def serverOp(message,serverName=SERVERNAME,port=50000,verbose=False):
-#def serverOp(message,serverName="hipster-pi4.dhcp.lbl.gov",port=50000,verbose=False):
-#def serverOp(message,serverName="hipster-pi2.dhcp.lbl.gov",port=50000,verbose=False):
-#def serverOp(message,serverName="131.243.115.189",port=50000,verbose=False):
-#def serverOp(message,serverName="localhost",port=50000,verbose=False):
-    """The serverOp command length is five bytes.  First byte is device ID and  
+    """ 
+    Executes a command on the remote server.
+    The serverOp command length is five bytes.  First byte is device ID and  
     indicates if it is a read or write and what device is requested.
     Bytes 2 and 3 are the 16-bit register address
     Bytes 4 and 5 are the 16-bit data word
@@ -198,16 +201,18 @@ def serverOp(message,serverName=SERVERNAME,port=50000,verbose=False):
     return data
 
 def calibrateADC():
-    """executes calibration command.  It does so in two steps.
+    """ 
+    Executes calibration command.  It does so in two steps.
     1.  Load Command Register with calibration enabled
-    3.  Clear Command Register
+    2.  Clear Command Register
     """
     writeRegister(CR,0x4000)
     writeRegister(CR,0)  # clear command register
 
     
 def writeValueToCorrectionLogic(adc,stage,weight,value):    
-    """loads data value into Correction Logic register file (CLRF)
+    """
+    Loads data value into Correction Logic register file (CLRF)
     It does this in three steps:
     1.  Load data we wish to write into Write Data Register (WDR)
     2.  Load Command Register with ADC, Stage, and Weight we wish to write
@@ -220,10 +225,11 @@ def writeValueToCorrectionLogic(adc,stage,weight,value):
     writeRegister(CR,0)  # clear command register
     
 def readValueFromCorrectionLogic(adc,stage,weight):
-    """reads data value from Correction Logic register file (CLRF)
+    """
+    Reads data value from Correction Logic register file (CLRF)
     It does this in three steps:
     1.  Load Command Register with ADC, Stage, and Weight we wish to read
-    3.  Clear Command Register
+    2.  Clear Command Register
     3.  Read back requested value from Mailbox Register
     """    
     command = 0x1000 | stage | (adc << 4) | (weight << 11) 
@@ -233,7 +239,8 @@ def readValueFromCorrectionLogic(adc,stage,weight):
     return readRegister(MBR)
 
 def dumpCorrectionLogic(whichADC):
-    """ Dumps contents of CLRF for specific ADC
+    """ 
+    Dumps contents of CLRF for specific ADC
     """
     print "CLRF Dump"
     print "ADC   Stage   Weight   Value"
@@ -248,7 +255,8 @@ def dumpCorrectionLogic(whichADC):
             print whichADC,"   ",stage,"     ",whichWeight,"     ",hex(value)
 
 def dumpCorrectionLogicToFile(whichADC,fileName="correction_logic.txt"):
-    """ Dumps contents of CLRF for specific ADC to file
+    """ 
+    Dumps contents of CLRF for specific ADC to file
     """
     file = open(fileName, 'w+')
     print "dumping..."
@@ -263,7 +271,8 @@ def dumpCorrectionLogicToFile(whichADC,fileName="correction_logic.txt"):
             print "ADC",whichADC," stage ",stage,' ',whichWeight,' ',hex(value)
 
 def loadCorrectionLogicFromFile(whichADC,fileName="correction_logic.txt"):
-    """ loads correction logic with the contents of a file
+    """ 
+    Loads correction logic with the contents of a file
     """
     try:
         values = open(fileName).read().splitlines()
@@ -286,7 +295,8 @@ def loadCorrectionLogicFromFile(whichADC,fileName="correction_logic.txt"):
     
 
 def restoreCorrectionLogicToDefault():
-    """restores Correction Logic register file (CLRF) to default values
+    """
+    Restores Correction Logic register file (CLRF) to default values
     Applying a hardware reset to HIPSTER does this as well
     The defaults are loaded into the CLRF in two steps.
     1. Load Command Register with Load Default request bit set
@@ -297,7 +307,8 @@ def restoreCorrectionLogicToDefault():
     writeRegister(CR,0) # clear command register 
 
 def zeroOutCorrectionLogic(whichADC=0):
-    """ Writes Zero to all correction logic registers for whichADC
+    """ 
+    Writes Zero to all correction logic registers for whichADC
     """
     for stage in range(0,8):
         for weight in (0,1):
@@ -305,7 +316,8 @@ def zeroOutCorrectionLogic(whichADC=0):
     
     
 def testCLRF(verbose=False):
-    """ Tests Correction Logic Register File using MATS++ algorithm
+    """ 
+    Tests Correction Logic Register File using MATS++ algorithm.
     MATS stands for Modified Algorithmic Test Sequence
     The algorithm checks each register for the following faults:
     sticky 0, sticky 1, failed 0->1 transition and failed 1->0 transition.
@@ -354,7 +366,8 @@ def testCLRF(verbose=False):
     restoreDefaultsToCorrectionLogic()
 
 def testSPI(verbose=False):
-    """ Tests SPI registers using MATS++ algorithm
+    """ 
+    Tests SPI registers using MATS++ algorithm.
     MATS stands for Modified Algorithmic Test Sequence
     The algorithm checks each register for the following faults:
     sticky 0, sticky 1, failed 0->1 transition and failed 1->0 transition.
@@ -425,7 +438,8 @@ def testSPI(verbose=False):
         if (verbose): print "testSPI: SPI test passed."  
         
 def readValueFromOffsetDAC():
-    """reads out Offset DAC value 
+    """
+    Reads out Offset DAC value 
     It does this is three steps.
     1.  Load Command Register with Offset DAC access request bit set
     2.  Clear Command Register
@@ -437,7 +451,8 @@ def readValueFromOffsetDAC():
     return readRegister(MBR)    
 
 def writeValueToOffsetDAC():
-    """writes Offset DAC value from SPI register 1 
+    """
+    Writes Offset DAC value from SPI register 1 
     It does this is three steps.
     1.  Load Command Register with Offset DAC access request bit set
     2.  Clear Command Register
@@ -450,8 +465,9 @@ def writeValueToOffsetDAC():
     return     
 
 def powerDownTX(whichTX):
-    """ powers down a TX driver
-        usage: powerDownTX(<whichTX>). which TX from 0 to 5.
+    """ 
+    powers down a TX driver
+    usage: powerDownTX(<whichTX>). which TX from 0 to 5.
     """
 
     if (whichTX < 0) or (whichTX > 5):
@@ -462,15 +478,17 @@ def powerDownTX(whichTX):
         setBitInRegister(22,whichTX+8)
 
 def powerDownAllTXs():
-    """ powers down all TXs
+    """ 
+    powers down all TXs
     """
 
     for whichTX in range(0,6):
         powerDownTX(whichTX)
 
 def powerUpTX(whichTX):
-    """ powers up a TX driver specified by whichTX
-        usage: powerUpTX(<whichTX>). which TX from 0 to 5.
+    """ 
+    powers up a TX driver specified by whichTX
+    usage: powerUpTX(<whichTX>). which TX from 0 to 5.
     """
 
     if (whichTX < 0) or (whichTX > 5):
@@ -488,8 +506,9 @@ def powerUpAllTXs():
         powerUpTX(whichTX)
 
 def powerDownADC(whichADC):
-    """ powers down an ADC 
-        print "usage: powerDownADC(<whichADC>).  whichADC from 0 to 23"
+    """ 
+    powers down an ADC 
+    print "usage: powerDownADC(<whichADC>).  whichADC from 0 to 23"
     """
 
     if (whichADC < 0) or (whichADC > 23):
@@ -505,14 +524,16 @@ def powerDownADC(whichADC):
             setBitInRegister(24,whichADC-16)
 
 def powerDownAllADCs():
-    """ powers down all ADCs
+    """ 
+    powers down all ADCs
     """
     for whichADC in range(0,24):
         powerDownADC(whichADC)
 
 def powerUpADC(whichADC):
-    """ powers up an ADC
-        print "usage: powerUpADC(<whichADC>).  whichADC from 0 to 23"
+    """ 
+    powers up an ADC
+    print "usage: powerUpADC(<whichADC>).  whichADC from 0 to 23"
     """
 
     if (whichADC < 0) or (whichADC > 23):
@@ -528,46 +549,53 @@ def powerUpADC(whichADC):
             clearBitInRegister(24,whichADC-16)
 
 def powerUpADCs(start,stop):
-    """ powers up a range of ADCs from start to stop
-        e.g.: powerUPADCs(0,11) would power up ADC0 through ADC11
+    """ 
+    powers up a range of ADCs from start to stop
+    e.g.: powerUPADCs(0,11) would power up ADC0 through ADC11
     """
 
     for whichADC in range(start,stop+1):
         powerUpADC(whichADC)
 
 def powerUpAllADCs():
-    """ powers up all ADCs
+    """ 
+    powers up all ADCs
     """
 
     for whichADC in range(0,24):
         powerUpADC(whichADC)
 
 def disableTestBuffer():
-    """ disables the testbuffer. 
+    """ 
+    disables the testbuffer. 
     """
     
     setBitInRegister(22,1)
 
 def enableTestBuffer():
-    """ enables the testbuffer. 
+    """ 
+    enables the testbuffer. 
     """
     
     clearBitInRegister(22,1)
 
 def enableInternalReferences():
-    """ enables internal ADC references. 
+    """ 
+    enables internal ADC references. 
     """
 
     clearBitInRegister(2,8)    
 
 def disableInternalReferences():
-    """ disables internal ADC references.
+    """ 
+    disables internal ADC references.
     """
 
     setBitInRegister(2,8)
 
 def configureTestBuffer(whichSignal):    
-    """ configures the analog testbuffers.
+    """ 
+    configures the analog testbuffers.
     """
     if (whichSignal == "BGR_AFE"):
         command = 0
@@ -591,18 +619,18 @@ def configureTestBuffer(whichSignal):
     writeRegister(21,command) 
 
 def readbackBias(whichSignal):
-    """ configures the bias readback
-        The current selected here will be sent to I_AFE for the AFE
-        or I_TX for the TX 
+    """ 
+    configures the bias readback
+    The current selected here will be sent to I_AFE for the AFE
+    or I_TX for the TX 
 
-        Available readback currents:
+    Available readback currents:
         MASTER: HIPSTER master bias current
         ADC: ADC bias current
         CML_50U: CML bias current (actual current is 8X this value)
         REFBUFFER: ADC Reference Buffer bias current
         PLL_CP: PLL charge pump current
     """
-    #print "whichSignal = ", whichSignal
     oldCommand = readRegister(20)  # bias_readback is bits 1:0 of reg 20  
     if (whichSignal == "MASTER"): 
         command = 0
@@ -620,7 +648,8 @@ def readbackBias(whichSignal):
     writeRegister(20,newCommand)
 
 def setBias(whichBias,value):
-    """ configures the various bias blocks
+    """ 
+    configures the various bias blocks
     """
     
     if (value > 15):
@@ -643,8 +672,9 @@ def setBias(whichBias,value):
     writeRegister(20,newCommand)
 
 def setEqualizerTap(whichTap,whichTX,value):
-    """ configures output driver current
-        Current is 16*(value)*50uA (nominal value is 8)
+    """ 
+    configures output driver current
+    Current is 16*(value)*50uA (nominal value is 8)
     """
 
     if (whichTap == "BYPASS"):
@@ -696,9 +726,10 @@ def setEqualizerTap(whichTap,whichTX,value):
         writeRegister(highReg,newCommand)
 
 def setADCBias(whichBias,value):
-    """ configures the ADC bias current
-        ADC bias current is master_bias current * ADC setting 
-        (see datasheet)
+    """ 
+    configures the ADC bias current
+    ADC bias current is master_bias current * ADC setting 
+    (see datasheet)
     """
 
     if (value > 15):
@@ -720,9 +751,10 @@ def setADCBias(whichBias,value):
     writeRegister(2,newCommand)
 
 def setBiasPLL(value):
-    """ configures the PLL charge pump current
-        PLL current is master_bias current * PLL setting
-        (see datasheet)
+    """ 
+    configures the PLL charge pump current
+    PLL current is master_bias current * PLL setting
+    (see datasheet)
     """
 
     if (value > 15):
@@ -735,7 +767,8 @@ def setBiasPLL(value):
     writeRegister(18,newCommand)
 
 def kickstartBGR():
-    """forces HIPSTER to restart the BGR.  This will only be
+    """
+    Forces HIPSTER to restart the BGR.  This will only be
     needed if the BGR startup circuit fails.
     Since the SPI registers are not self clearing, this function
     must both assert and remove the BGR reset.
@@ -750,7 +783,8 @@ def kickstartBGR():
     writeRegister(20,oldCommand)
 
 def kickstartPLL(vctrl=0.8):
-    """ kickstarts the PLL by forcing and then removing force
+    """ 
+    kickstarts the PLL by forcing and then removing force
     """
 
     setDAC("VCTRL",vctrl)
@@ -760,7 +794,8 @@ def kickstartPLL(vctrl=0.8):
     clearBitInRegister(19,8)
 
 def lockPLL():
-    """ performs operations to lock HIPSTER PLL.  
+    """ 
+    Performs operations to lock HIPSTER PLL.  
     This can only be used on boards that have been configured for external BGR
     This function does the following:
     1. disables internal bandgap
@@ -782,7 +817,8 @@ def lockPLL():
     setDAC("BGR_TX",1.23)
 
 def setPLL(cpCurrent, c1, c2, r1):
-    """ sets up PLL.  The four arguments are:
+    """ 
+    Sets up PLL.  The four arguments are:
     1. Charge Pump current (from 0 to 15)
     2. C1 setting (8-bit word)
     3. C2 setting (8-bit word)
@@ -800,7 +836,8 @@ def setPLL(cpCurrent, c1, c2, r1):
     writeRegister(18,(readRegister(18) & 0xFFF8)| r1)
 
 def setOffsetMode(mode):
-    """ sets mode of offset DAC.  The following modes are valid:
+    """ 
+    sets mode of offset DAC.  The following modes are valid:
         0 -> use DAC values from SPI
         1 -> use VTOP external pin voltage
         2 -> use DAC values from SPI
@@ -825,7 +862,8 @@ def setOffsetMode(mode):
         print "Valid values are: 0, 1, 2, 3)"
         
 def setPGA(gain,sc=2):
-    """ sets gain of linear preamp of PGA
+    """ 
+    sets gain of linear preamp of PGA
     """
 
     clearBitInRegister(0,0)
@@ -857,23 +895,30 @@ def setPGA(gain,sc=2):
         print "Valid values are: 1, 2"
 
 def observeVCTRL(disable=False):
-    
+    """
+    Enables external observation of PLL VCTRL voltage
+    """
     if (disable):
         clearBitInRegister(19,2)
     else:
         setBitInRegister(19,2)
 
 def forceVCTRL(value=1.0):
-    
+    """ 
+    Disables PLL loop and forces value of PLL VCTRL voltage
+    """
     setDAC("VCTRL",value)
     setBitInRegister(19,8)
 
 def unforceVCTRL():
-    
+    """ 
+    Re-enables PLL Loop
+    """
     clearBitInRegister(19,8)
 
 def softReset():
-    """ forces the JESD204B interface and HIPSTER digital to reset.  This
+    """ 
+    Forces the JESD204B interface and HIPSTER digital to reset.  This
     should be used when testing the CLRF.  This could also be useful
     if there is an issue with the PLL Lock Detect signal.
     Since the SPI registers are not self clearing, this function
@@ -892,7 +937,8 @@ def softReset():
     writeRegister(27,oldCommand) # restore original setting
 
 def enableDACs(verbose=False):
-    """ the DAC8568 needs the internal reference started after reset
+    """ 
+    The DAC8568 needs the internal reference started after reset
     The internal reference is powered on with 0x08000001
     The function enables internal references on both DACs
 	This function also puts DACs in software LDAC mode so the outputs
@@ -922,7 +968,8 @@ def enableDACs(verbose=False):
 
 
 def selectDAC(whichDAC):
-    """ lookup table to determine which physical DAC and which channel
+    """ 
+    Lookup table to determine which physical DAC and which channel
     should be selected
     The two DACs are:
     
@@ -989,7 +1036,8 @@ def selectDAC(whichDAC):
 
 
 def setDAC(whichDAC,desiredVoltage,verbose=False):
-    """ sets output of test DACs on HIPSTER eval board
+    """ 
+    Sets output of test DACs on HIPSTER eval board
     The eval board includes two octal 16-bit DACs (part number DAC8568)
     for a total of 16 DACs, 12 of which are actually used.
     
@@ -1021,7 +1069,6 @@ def setDAC(whichDAC,desiredVoltage,verbose=False):
 
     DAC, channel = selectDAC(whichDAC)
 
-    # vout = (data/2^16)*2.5
     if (whichDAC == "VREF_P"):
         data = int(round(65536*desiredVoltage/(2.5*1.2)))
     else:
@@ -1042,7 +1089,8 @@ def setDAC(whichDAC,desiredVoltage,verbose=False):
     writeRegister(DACcommand_MSB,DACcommand_LSB,DAC)
 
 def setDACRaw(whichDAC,data):
-    """ sets output of test DAC8568s on HIPSTER eval board directly
+    """ 
+    Sets output of test DAC8568s on HIPSTER eval board directly
     with a 16-bit word (rather than a desired voltage)
     see setDAC() for an explanation of the command register
     """
@@ -1059,16 +1107,17 @@ def setDACRaw(whichDAC,data):
     
 
 def setDACsToDefaults():
-    """ sets output of test DACs on HIPSTER eval board to their default
+    """ 
+    Sets output of test DACs on HIPSTER eval board to their default
     values.  The defaults values are as follows:
-    VBG = 1.23
-    VREF_P = 2.5
-    VTH_P = 1.9375
-    VCM = 1.75
-    VTH_N = 1.5625
-    VREF_N = 1.0
-    OFFSET_TOP = 1.5
-    OFFSET_BOT = 0.5
+        VBG = 1.23
+        VREF_P = 2.5
+        VTH_P = 1.9375
+        VCM = 1.75
+        VTH_N = 1.5625
+        VREF_N = 1.0
+        OFFSET_TOP = 1.5
+        OFFSET_BOT = 0.5
     """
     setDAC("BGR_AFE",1.23)
     setDAC("BGR_TX",1.23)
@@ -1083,7 +1132,8 @@ def setDACsToDefaults():
     setDAC("OFFSET_BOT_B",0.5)
 
 def setRefs(vcm,vid):
-    """ sets ADC reference voltages.  Differential reference vid is symmetric
+    """ 
+    Sets ADC reference voltages.  Differential reference vid is symmetric
     about vcm
     """
 
@@ -1106,7 +1156,8 @@ def setRefs(vcm,vid):
     setDAC("VCM",vcm)
 
 def setOffset(whichOffset,value):
-    """ sets OFFSET_TOP & OFFSET_BOTTOM
+    """ 
+    sets OFFSET_TOP & OFFSET_BOTTOM
     """
     if (whichOffset == "OFFSET_TOP"):
         setDAC("OFFSET_TOP_A",value)
@@ -1120,45 +1171,51 @@ def setOffset(whichOffset,value):
         print "usage: available Offsets are: \"OFFSET_TOP\" \"OFFSET_BOT\" "    
 
 def setADC1(value):
-    """ sets both DACs that connect to ADC1
+    """ 
+    sets both DACs that connect to ADC1
     """
     setDAC("ADC_1_A",value)
     setDAC("ADC_1_B",value)
 
 def setADC2(value):
-    """ sets both DACs that connect to ADC2
+    """ 
+    sets both DACs that connect to ADC2
     """
     setDAC("ADC_2_A",value)
     setDAC("ADC_2_B",value)
 
 def configureSSO(whichADC,dataSelect=1):
-    """ configures the SSO
-        whichADC selects which ADC to read out (0 - 23)
-        dataSelect = 0 --> raw decisions, dataSelect = 1 --> ADC data
+    """ 
+    Configures the SSO
+    whichADC selects which ADC to read out (0 - 23)
+    dataSelect = 0 --> raw decisions, dataSelect = 1 --> ADC data
     """
     command = 0x80 | dataSelect << 6 | whichADC
-    #print "ConfigureSSO: command = ",hex(command) 
     writeRegister(5,(0x80 | dataSelect <<6 | whichADC))
  
 def enableSSO():
-    """ enables the SSO
+    """ 
+    enables the SSO
     """
     setBitInRegister(5,7)
     
 def disableSSO():
-    """ disables the SSO
+    """ 
+    Disables the SSO
     """
     clearBitInRegister(5,7)
 
 def powerDownHIPSTER():
-    """ fully powers down HIPSTER
+    """ 
+    Fully powers down HIPSTER
     """ 
     
     writeRegister(20,0xFFFF)
     writeRegister(22,0xFFFF)
 
 def dumpConfigMap():
-    """ prints out the configMap to screen 
+    """ 
+    Prints out the configMap to screen 
     configMap is the host's copy of the map inside HIPSTER
     """    
     
@@ -1167,7 +1224,8 @@ def dumpConfigMap():
         print "dumpConfigMap: Reg = ",reg," Data = ",configMap[reg]
 
 def dumpSpiMap(fileName="SpiMapDump.txt",verbose=False):
-    """ reads out the spiMap 
+    """ 
+    Reads out the spiMap 
     spiMap is the emulated map inside HIPSTER
     """
     global spiMap
@@ -1182,11 +1240,13 @@ def dumpSpiMap(fileName="SpiMapDump.txt",verbose=False):
     return spiMap
 
 def isSpiMapDefault():
-    """ checks to see if current SPIMap is default map """
+    """ 
+    checks to see if current SPIMap is default map """
     return (list(REG_DEFAULTS) == dumpSpiMap()[0:52])
 
 def restoreSpiMapToDefault():
-    """ restores HIPSTER SPI Map to default condition
+    """ 
+    restores HIPSTER SPI Map to default condition
     """
     defaultMap = list(REG_DEFAULTS)
     for reg in range(0,len(defaultMap)):
